@@ -4,7 +4,7 @@ Landing page de NovaLine, un estudio de software a la medida para negocios en Co
 
 ## Requisitos
 
-- Node.js 20 o superior
+- Node.js 24 o superior
 - npm 10 o superior
 
 ## Desarrollo local
