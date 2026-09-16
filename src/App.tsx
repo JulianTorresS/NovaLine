@@ -185,6 +185,76 @@ function NfcStage() {
   )
 }
 
+const PROCESS_ACTORS = [
+  { name: 'Laura', fullName: 'Laura Méndez', from: 7, to: 8, goal: 10, order: '#0129', tone: 'blue' },
+  { name: 'Andrés', fullName: 'Andrés Rojas', from: 4, to: 5, goal: 10, order: '#0130', tone: 'cyan' },
+  { name: 'Camila', fullName: 'Camila Torres', from: 9, to: 10, goal: 10, order: '#0131', tone: 'violet' },
+  { name: 'Felipe', fullName: 'Felipe Gómez', from: 5, to: 6, goal: 10, order: '#0132', tone: 'teal' },
+]
+
+function ProcessAnimationStage({ active, paused }: { active: boolean; paused: boolean }) {
+  const [cycle, setCycle] = useState(0)
+  const [actorIndex, setActorIndex] = useState(0)
+  const [received, setReceived] = useState(true)
+  const actor = PROCESS_ACTORS[actorIndex]
+  const progressFrom = Math.round((actor.from / actor.goal) * 100)
+  const progressTo = Math.round((actor.to / actor.goal) * 100)
+
+  useEffect(() => {
+    if (!active || paused) return
+    setReceived(false)
+    const arrivalTimer = window.setTimeout(() => setReceived(true), 2600)
+    const repeatTimer = window.setTimeout(() => {
+      setReceived(false)
+      setCycle((value) => value + 1)
+      setActorIndex((value) => (value + 1) % PROCESS_ACTORS.length)
+    }, 3900)
+    return () => {
+      window.clearTimeout(arrivalTimer)
+      window.clearTimeout(repeatTimer)
+    }
+  }, [active, paused, cycle])
+
+  return (
+    <div className="process-showcase">
+      <div className="process-showcase__copy">
+        <span>Procesos que se pueden ver</span>
+        <h2>Haz que cada movimiento de tu empresa cobre vida.</h2>
+        <p>Diseñamos experiencias animadas para pedidos, inventario, entregas y cualquier flujo que necesites explicar o seguir.</p>
+      </div>
+
+      <div className={`process-motion process-motion--${actor.tone} ${received ? 'is-received' : ''}`} key={cycle} aria-label={`Animación de un pedido de ${actor.name} que actualiza el avance de su proceso`} style={{ '--progress-from': `${progressFrom}%`, '--progress-to': `${progressTo}%` } as CSSProperties}>
+        <div className="process-motion__glow" aria-hidden="true"/>
+        <span className="process-actor-float">{actor.fullName}</span>
+        <div className="process-event">
+          <span className="process-envelope process-envelope--static" aria-hidden="true"><i/></span>
+          <div><strong>Pedido {actor.order}</strong></div>
+          <span>Listo</span>
+        </div>
+
+        <div className="process-route" aria-hidden="true">
+          <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+            <path d="M 0 8 C 65 8, 84 10, 100 92"/>
+          </svg>
+        </div>
+        <span className="process-envelope process-envelope--flight" aria-hidden="true"><i/></span>
+
+        <div className="process-result">
+          <div className="process-result__top">
+            <div><small>Avance del proceso</small><strong>Pedidos integrados</strong></div>
+            <span className="process-result__status"><Icon name="check" size={14}/> Actualizado</span>
+          </div>
+          <div className={`process-total ${received ? 'is-updated' : ''}`} aria-live="polite"><span>{actor.from}</span><span>{actor.to}</span></div>
+          <div className="process-bar"><i/></div>
+          <div className="process-bar__labels"><span>{received ? progressTo : progressFrom}% completado</span><span>Meta: {actor.goal} pedidos</span></div>
+        </div>
+
+        <div className="process-capabilities" aria-hidden="true"><span>Pedidos</span><span>Inventario</span><span>Documentos</span><span>Entregas</span></div>
+      </div>
+    </div>
+  )
+}
+
 function Hero() {
   const [slide, setSlide] = useState(() => new URLSearchParams(window.location.search).get('service') === 'seo' ? 1 : 0)
   const [demoIndex, setDemoIndex] = useState(0)
@@ -194,7 +264,7 @@ function Hero() {
 
   useEffect(() => {
     if (paused || systemPause.paused) return
-    const timer = window.setInterval(() => setSlide((value) => (value + 1) % 2), SITE.heroInterval)
+    const timer = window.setInterval(() => setSlide((value) => (value + 1) % 3), SITE.heroInterval)
     return () => window.clearInterval(timer)
   }, [paused, systemPause.paused])
 
@@ -204,7 +274,7 @@ function Hero() {
     return () => window.clearInterval(timer)
   }, [paused, systemPause.paused])
 
-  const select = (index: number) => setSlide((index + 2) % 2)
+  const select = (index: number) => setSlide((index + 3) % 3)
   const onTouchStart = (event: TouchEvent) => { touchStart.current = event.touches[0].clientX }
   const onTouchEnd = (event: TouchEvent) => {
     if (touchStart.current === null) return
@@ -218,9 +288,10 @@ function Hero() {
       <div className="hero__wash"/>
       <div className="shell">
         <div className="hero__rail" role="tablist" aria-label="Soluciones destacadas">
-          <button role="tab" aria-selected={slide === 0} className={slide === 0 ? 'is-active' : ''} onClick={() => select(0)}><Icon name="code"/> Software a medida</button>
-          <button role="tab" aria-selected={slide === 1} className={slide === 1 ? 'is-active' : ''} onClick={() => select(1)}><Icon name="search"/> SEO + reseñas NFC</button>
-          <span className="hero__count">0{slide + 1} / 02</span>
+          <button role="tab" aria-selected={slide === 0} className={slide === 0 ? 'is-active' : ''} onClick={() => select(0)}><Icon name="code"/><span className="hero-tab__wide">Software a medida</span><span className="hero-tab__short">Software</span></button>
+          <button role="tab" aria-selected={slide === 1} className={slide === 1 ? 'is-active' : ''} onClick={() => select(1)}><Icon name="search"/><span className="hero-tab__wide">SEO + reseñas NFC</span><span className="hero-tab__short">SEO + NFC</span></button>
+          <button role="tab" aria-selected={slide === 2} className={slide === 2 ? 'is-active' : ''} onClick={() => select(2)}><Icon name="pulse"/><span className="hero-tab__wide">Procesos animados</span><span className="hero-tab__short">Animación</span></button>
+          <span className="hero__count">0{slide + 1} / 03</span>
           <div className="hero__arrows">
             <button type="button" aria-label="Ver propuesta anterior" onClick={() => select(slide - 1)}><Icon name="chevronLeft"/></button>
             <button type="button" aria-label="Ver propuesta siguiente" onClick={() => select(slide + 1)}><Icon name="chevronRight"/></button>
@@ -253,9 +324,13 @@ function Hero() {
             </div>
             <NfcStage />
           </section>
+
+          <section className={`hero-slide hero-slide--process ${slide === 2 ? 'is-active' : ''}`} aria-hidden={slide !== 2}>
+            <ProcessAnimationStage active={slide === 2} paused={systemPause.paused}/>
+          </section>
         </div>
 
-        <div className="hero__progress" aria-hidden="true"><i className={slide === 0 ? 'is-active' : ''}/><i className={slide === 1 ? 'is-active' : ''}/></div>
+        <div className="hero__progress" aria-hidden="true"><i className={slide === 0 ? 'is-active' : ''}/><i className={slide === 1 ? 'is-active' : ''}/><i className={slide === 2 ? 'is-active' : ''}/></div>
       </div>
     </main>
   )

@@ -14,10 +14,11 @@ describe('NovaLine landing', () => {
     expect(navigation).toHaveTextContent('Contacto')
   })
 
-  it('presenta las dos propuestas del hero', () => {
+  it('presenta las tres propuestas del hero', () => {
     render(<App />)
     expect(screen.getByRole('tab', { name: /Software a medida/i })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: /SEO \+ reseñas NFC/i })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: /Procesos animados/i })).toBeInTheDocument()
   })
 
   it('presenta la identidad y la sección Nosotros de NovaLine', () => {
