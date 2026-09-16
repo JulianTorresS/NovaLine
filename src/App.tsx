@@ -5,6 +5,28 @@ import { applySeoToDocument } from './seo'
 
 type IconName = 'arrow' | 'check' | 'chevronLeft' | 'chevronRight' | 'code' | 'layers' | 'menu' | 'pulse' | 'quote' | 'search' | 'x'
 
+type ClarityCommand = ((...args: unknown[]) => void) & { q?: unknown[][] }
+
+function useClarityTracking() {
+  useEffect(() => {
+    if (window.location.hostname !== 'novalinesoftware.com') return
+
+    const clarityWindow = window as typeof window & { clarity?: ClarityCommand }
+    const source = 'https://www.clarity.ms/tag/yje8n0pthh'
+    if (clarityWindow.clarity || document.querySelector(`script[src="${source}"]`)) return
+
+    const clarity: ClarityCommand = (...args) => {
+      (clarity.q ??= []).push(args)
+    }
+    clarityWindow.clarity = clarity
+
+    const script = document.createElement('script')
+    script.async = true
+    script.src = source
+    document.head.appendChild(script)
+  }, [])
+}
+
 function useSystemPause<T extends HTMLElement>() {
   const ref = useRef<T>(null)
   const [paused, setPaused] = useState(false)
@@ -1344,6 +1366,7 @@ function ServicesPage() {
 }
 
 export default function App({ initialPath }: { initialPath?: string }) {
+  useClarityTracking()
   const [pathname, setPathname] = useState(() => initialPath ?? (typeof window === 'undefined' ? '/' : window.location.pathname))
   const route = resolveRoute(pathname)
 
