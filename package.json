@@ -10,6 +10,7 @@
     "build:ssr": "vite build --ssr src/entry-server.tsx --outDir .ssr-dist",
     "images:optimize": "node scripts/optimize-images.mjs",
     "test": "vitest run",
+    "test:seo": "node scripts/verify-seo.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

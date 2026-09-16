@@ -30,9 +30,52 @@ export const PROCESS = [
 ]
 
 export const SERVICES = [
-  { icon: 'code', title: 'Software a la medida', text: 'ERP, CRM, automatizaciones y herramientas internas creadas alrededor de tu operación.', link: 'Quiero digitalizar un proceso' },
-  { icon: 'layers', title: 'Experiencias web y móvil', text: 'Portales, plataformas y aplicaciones rápidas que tu equipo y tus clientes entienden al instante.', link: 'Tengo una idea de producto' },
-  { icon: 'pulse', title: 'Soporte que sí responde', text: 'Mantenimiento, mejoras y acompañamiento técnico con contexto real de tu negocio.', link: 'Necesito apoyo técnico' },
+  {
+    icon: 'code',
+    title: 'Software a la medida',
+    summary: 'ERP, CRM, automatizaciones y herramientas internas creadas alrededor de tu operación.',
+    text: 'Construimos plataformas internas, CRM y herramientas administrativas adaptadas a los procesos, roles e información de cada empresa.',
+    link: 'Quiero digitalizar un proceso',
+    caseHref: '/proyectos/formula-animal/',
+    caseLabel: 'Ver el CRM de Fórmula Animal',
+  },
+  {
+    icon: 'layers',
+    title: 'Experiencias web responsive',
+    summary: 'Portales, plataformas y aplicaciones web que tu equipo y tus clientes entienden en cualquier pantalla.',
+    text: 'Diseñamos aplicaciones web, portales y catálogos responsive enfocados en objetivos de negocio y en una experiencia clara para cada usuario.',
+    link: 'Tengo una idea de producto',
+    caseHref: '/proyectos/native-haus/',
+    caseLabel: 'Ver la experiencia web de Nativhaus',
+  },
+  {
+    icon: 'pulse',
+    title: 'Automatización y soporte',
+    summary: 'Mantenimiento, automatizaciones y acompañamiento técnico con contexto real de tu negocio.',
+    text: 'Automatizamos tareas y acompañamos el mantenimiento y la evolución de productos digitales con conocimiento de la operación.',
+    link: 'Necesito apoyo técnico',
+    caseHref: '/proyectos/lia/',
+    caseLabel: 'Ver la automatización con Lia',
+  },
+]
+
+export const TEAM_MEMBERS = [
+  {
+    name: 'Santiago Fraile Arevalo',
+    role: 'Ingeniero de software',
+    specialty: 'Back-end y arquitectura',
+    bio: 'Desarrollador enfocado en construir sistemas sólidos, APIs claras y procesos que respondan a las necesidades reales de cada negocio.',
+    photo: '/assets/team/WhatsApp Image 2026-09-15 at 12.24.01 PM.jpeg',
+    photoStem: 'santiago',
+  },
+  {
+    name: 'Julian David Torres Saavedra',
+    role: 'Ingeniero de software',
+    specialty: 'Front-end · UX/UI',
+    bio: 'Desarrollador especializado en crear interfaces claras, funcionales y visualmente cuidadas, conectando las necesidades de las personas con experiencias digitales intuitivas.',
+    photo: '/assets/team/ChatGPT Image 15 sept 2026, 04_50_50 p.m.png',
+    photoStem: 'julian',
+  },
 ]
 
 export const PROJECTS = [

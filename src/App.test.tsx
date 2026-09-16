@@ -18,7 +18,7 @@ describe('NovaLine landing', () => {
   it('presenta las tres propuestas del hero', () => {
     render(<App />)
     expect(screen.getByRole('tab', { name: /Software a medida/i })).toBeInTheDocument()
-    const nfcTab = screen.getByRole('tab', { name: /SEO \+ reseñas NFC/i })
+    const nfcTab = screen.getByRole('tab', { name: /SEO y reseñas NFC/i })
     expect(nfcTab).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: /Procesos animados/i })).toBeInTheDocument()
     expect(screen.queryByAltText(/Tarjeta física para solicitar reseñas/i)).not.toBeInTheDocument()
@@ -66,7 +66,7 @@ describe('NovaLine landing', () => {
   it('abre el caso real de Fórmula Animal desde proyectos', () => {
     window.history.replaceState({}, '', '/')
     render(<App />)
-    fireEvent.click(screen.getByRole('button', { name: 'Ver caso real de Fórmula Animal' }))
+    fireEvent.click(screen.getByRole('link', { name: 'Ver caso real de Fórmula Animal' }))
     expect(screen.getByRole('heading', { name: /Un CRM que acompaña todo el recorrido/i })).toBeInTheDocument()
     expect(window.location.pathname).toBe('/proyectos/formula-animal/')
     fireEvent.click(screen.getByRole('button', { name: /Facturación/i }))
@@ -76,7 +76,7 @@ describe('NovaLine landing', () => {
   it('abre el caso real de Native Haus y permite recorrer sus vistas', () => {
     window.history.replaceState({}, '', '/')
     render(<App />)
-    fireEvent.click(screen.getByRole('button', { name: 'Ver caso real de Nativhaus' }))
+    fireEvent.click(screen.getByRole('link', { name: 'Ver caso real de Nativhaus' }))
     expect(screen.getByRole('heading', { name: /Una vitrina digital que convierte madera/i })).toBeInTheDocument()
     expect(window.location.pathname).toBe('/proyectos/native-haus/')
     fireEvent.click(screen.getByRole('button', { name: /Cotizador/ }))
@@ -86,7 +86,7 @@ describe('NovaLine landing', () => {
   it('abre el ERP comercial NexusPOS y permite recorrer sus módulos', () => {
     window.history.replaceState({}, '', '/')
     render(<App />)
-    fireEvent.click(screen.getByRole('button', { name: 'Ver caso real de NexusPOS' }))
+    fireEvent.click(screen.getByRole('link', { name: 'Ver caso real de NexusPOS' }))
     expect(screen.getByRole('heading', { name: /La operación completa de un comercio/i })).toBeInTheDocument()
     expect(window.location.pathname).toBe('/proyectos/nexus-pos/')
     fireEvent.click(screen.getByRole('button', { name: /Inventario/ }))
@@ -98,7 +98,7 @@ describe('NovaLine landing', () => {
   it('abre el caso de Lia y permite recorrer sus capacidades', () => {
     window.history.replaceState({}, '', '/')
     render(<App />)
-    fireEvent.click(screen.getByRole('button', { name: 'Ver caso real de Lia' }))
+    fireEvent.click(screen.getByRole('link', { name: 'Ver caso real de Lia' }))
     expect(screen.getByRole('heading', { name: /Una asistente empresarial capaz de entender/i })).toBeInTheDocument()
     expect(window.location.pathname).toBe('/proyectos/lia/')
     const heroScreenshot = screen.getByAltText('Conversación con el agente inteligente Lia')
@@ -109,5 +109,28 @@ describe('NovaLine landing', () => {
     expect(heroScreenshot.parentElement?.querySelector('source[type="image/webp"]')).toHaveAttribute('srcset', expect.stringContaining('/assets/lia/responsive/asistente-1280.webp'))
     fireEvent.click(screen.getByRole('button', { name: /Configurar/ }))
     expect(screen.getByRole('heading', { name: 'El agente se adapta a la identidad y al motor de cada empresa' })).toBeInTheDocument()
+  })
+
+  it('mantiene las pestañas y clones ocultos fuera del recorrido de teclado', () => {
+    window.history.replaceState({}, '', '/')
+    const { container } = render(<App />)
+    const tabs = screen.getAllByRole('tab')
+    expect(tabs.map((tab) => tab.getAttribute('tabindex'))).toEqual(['0', '-1', '-1'])
+    expect(container.querySelectorAll('.hero-slide[aria-hidden="true"][inert]').length).toBe(2)
+    container.querySelectorAll('.project-card[aria-hidden="true"] .project-card__open').forEach((link) => {
+      expect(link).toHaveAttribute('tabindex', '-1')
+    })
+    fireEvent.keyDown(tabs[0], { key: 'ArrowRight' })
+    expect(tabs[1]).toHaveAttribute('aria-selected', 'true')
+    expect(tabs[0]).toHaveAttribute('tabindex', '-1')
+  })
+
+  it('presenta servicios detallados y enlaces contextuales hacia casos reales', () => {
+    window.history.replaceState({}, '', '/servicios/')
+    render(<App initialPath="/servicios/" />)
+    expect(screen.getByRole('heading', { level: 1, name: /Servicios de software diseñados/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Ver el CRM de Fórmula Animal/i })).toHaveAttribute('href', '/proyectos/formula-animal/')
+    expect(screen.getByRole('link', { name: /Ver la experiencia web de Nativhaus/i })).toHaveAttribute('href', '/proyectos/native-haus/')
+    expect(screen.getByRole('link', { name: /Ver la automatización con Lia/i })).toHaveAttribute('href', '/proyectos/lia/')
   })
 })

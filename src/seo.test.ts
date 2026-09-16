@@ -20,7 +20,9 @@ describe('SEO estructural', () => {
     const seo = getSeoMetadata(route.path)
     expect(seo.canonical).toBe(`${SITE_ORIGIN}${route.path}`)
     expect(seo.title).toBeTruthy()
+    expect(seo.title.length).toBeLessThanOrEqual(60)
     expect(seo.description.length).toBeGreaterThanOrEqual(120)
+    expect(seo.description.length).toBeLessThanOrEqual(160)
     expect(renderSeoHead(route.path)).toContain(`href="${seo.canonical}"`)
   })
 
@@ -50,6 +52,24 @@ describe('SEO estructural', () => {
     expect(getSeoMetadata('/nosotros/').image).toBeUndefined()
     for (const route of PUBLIC_ROUTES.filter((item) => item.path.startsWith('/proyectos/'))) {
       expect(getSeoMetadata(route.path).image).toMatch(/^https:\/\/novalinesoftware\.com\/assets\/.+\/cover\.png$/)
+    }
+  })
+
+  it('publica Person verificables en Nosotros y CreativeWork en cada caso', () => {
+    const aboutGraph = getJsonLd('/nosotros/')['@graph'] as Array<Record<string, unknown>>
+    const people = aboutGraph.filter((node) => node['@type'] === 'Person')
+    expect(people).toHaveLength(2)
+    expect(people.map((person) => person.name)).toEqual([
+      'Santiago Fraile Arevalo',
+      'Julian David Torres Saavedra',
+    ])
+    expect(JSON.stringify(people)).not.toMatch(/sameAs|address|email|award|rating/i)
+
+    for (const route of PUBLIC_ROUTES.filter((item) => item.path.startsWith('/proyectos/'))) {
+      const graph = getJsonLd(route.path)['@graph'] as Array<Record<string, unknown>>
+      const caseStudy = graph.find((node) => node['@type'] === 'CreativeWork')
+      expect(caseStudy?.['@id']).toBe(`${SITE_ORIGIN}${route.path}#case-study`)
+      expect(() => JSON.parse(JSON.stringify(graph))).not.toThrow()
     }
   })
 

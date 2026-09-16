@@ -1,4 +1,4 @@
-import { SERVICES, SITE } from './config'
+import { SERVICES, SITE, TEAM_MEMBERS } from './config'
 import { absoluteUrl, resolveRoute, ROUTES, SITE_ORIGIN, type RouteDefinition } from './routes'
 
 type JsonLd = Record<string, unknown>
@@ -6,6 +6,7 @@ type JsonLd = Record<string, unknown>
 const organizationId = `${SITE_ORIGIN}/#organization`
 const websiteId = `${SITE_ORIGIN}/#website`
 const logoUrl = absoluteUrl('/favicon.svg')
+const caseRouteKeys = new Set(['formula-animal', 'native-haus', 'nexus-pos', 'lia'])
 
 function organizationSchema(): JsonLd {
   return {
@@ -38,7 +39,7 @@ function websiteSchema(): JsonLd {
 
 function webpageSchema(route: RouteDefinition): JsonLd {
   const canonical = absoluteUrl(route.path)
-  return {
+  const page: JsonLd = {
     '@type': 'WebPage',
     '@id': `${canonical}#webpage`,
     url: canonical,
@@ -48,6 +49,8 @@ function webpageSchema(route: RouteDefinition): JsonLd {
     isPartOf: { '@id': websiteId },
     about: { '@id': organizationId },
   }
+  if (caseRouteKeys.has(route.key)) page.mainEntity = { '@id': `${canonical}#case-study` }
+  return page
 }
 
 function serviceSchemas(): JsonLd[] {
@@ -65,10 +68,37 @@ function serviceSchemas(): JsonLd[] {
   }))
 }
 
+function personSchemas(): JsonLd[] {
+  return TEAM_MEMBERS.map((member, index) => ({
+    '@type': 'Person',
+    '@id': `${absoluteUrl(ROUTES.about.path)}#person-${index + 1}`,
+    name: member.name,
+    jobTitle: member.role,
+    image: absoluteUrl(member.photo),
+    worksFor: { '@id': organizationId },
+  }))
+}
+
+function caseStudySchema(route: RouteDefinition): JsonLd {
+  const canonical = absoluteUrl(route.path)
+  return {
+    '@type': 'CreativeWork',
+    '@id': `${canonical}#case-study`,
+    url: canonical,
+    name: route.title,
+    description: route.description,
+    inLanguage: 'es-CO',
+    creator: { '@id': organizationId },
+    ...(route.ogImage ? { image: absoluteUrl(route.ogImage) } : {}),
+  }
+}
+
 export function getJsonLd(pathname: string): JsonLd {
   const route = resolveRoute(pathname)
   const graph = [organizationSchema(), websiteSchema(), webpageSchema(route)]
   if (route.key === 'services') graph.push(...serviceSchemas())
+  if (route.key === 'about') graph.push(...personSchemas())
+  if (caseRouteKeys.has(route.key)) graph.push(caseStudySchema(route))
   return {
     '@context': 'https://schema.org',
     '@graph': graph,

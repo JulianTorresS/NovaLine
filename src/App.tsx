@@ -1,5 +1,5 @@
-import { CSSProperties, MouseEventHandler, ReactNode, TouchEvent, TransitionEvent, useEffect, useMemo, useRef, useState } from 'react'
-import { NAV_ITEMS, PHONE_DEMOS, PROCESS, PROJECTS, SERVICES, SITE, whatsappUrl } from './config'
+import { CSSProperties, KeyboardEvent as ReactKeyboardEvent, MouseEventHandler, ReactNode, TouchEvent, TransitionEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { NAV_ITEMS, PHONE_DEMOS, PROCESS, PROJECTS, SERVICES, SITE, TEAM_MEMBERS, whatsappUrl } from './config'
 import { CASE_ROUTES, resolveRoute } from './routes'
 import { applySeoToDocument } from './seo'
 
@@ -267,7 +267,7 @@ function ProcessAnimationStage({ active, paused }: { active: boolean; paused: bo
   )
 }
 
-function Hero() {
+function Hero({ servicesMode = false }: { servicesMode?: boolean }) {
   const [slide, setSlide] = useState(0)
   const [demoIndex, setDemoIndex] = useState(0)
   const [paused, setPaused] = useState(false)
@@ -291,6 +291,17 @@ function Hero() {
   }, [paused, systemPause.paused])
 
   const select = (index: number) => setSlide((index + 3) % 3)
+  const onTabKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    let nextSlide: number
+    if (event.key === 'ArrowRight') nextSlide = (slide + 1) % 3
+    else if (event.key === 'ArrowLeft') nextSlide = (slide + 2) % 3
+    else if (event.key === 'Home') nextSlide = 0
+    else if (event.key === 'End') nextSlide = 2
+    else return
+    event.preventDefault()
+    select(nextSlide)
+    window.requestAnimationFrame(() => document.getElementById(`hero-tab-${nextSlide}`)?.focus())
+  }
   const onTouchStart = (event: TouchEvent) => { touchStart.current = event.touches[0].clientX }
   const onTouchEnd = (event: TouchEvent) => {
     if (touchStart.current === null) return
@@ -300,13 +311,15 @@ function Hero() {
   }
 
   return (
-    <main ref={systemPause.ref} id="inicio" className="hero" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onFocus={() => setPaused(true)} onBlur={() => setPaused(false)} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+    <section ref={systemPause.ref} id="inicio" className="hero" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onFocus={() => setPaused(true)} onBlur={() => setPaused(false)} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
       <div className="hero__wash"/>
       <div className="shell">
-        <div className="hero__rail" role="tablist" aria-label="Soluciones destacadas">
-          <button role="tab" aria-selected={slide === 0} className={slide === 0 ? 'is-active' : ''} onClick={() => select(0)}><Icon name="code"/><span className="hero-tab__wide">Software a medida</span><span className="hero-tab__short">Software</span></button>
-          <button role="tab" aria-selected={slide === 1} className={slide === 1 ? 'is-active' : ''} onClick={() => select(1)}><Icon name="search"/><span className="hero-tab__wide">SEO + reseñas NFC</span><span className="hero-tab__short">SEO + NFC</span></button>
-          <button role="tab" aria-selected={slide === 2} className={slide === 2 ? 'is-active' : ''} onClick={() => select(2)}><Icon name="pulse"/><span className="hero-tab__wide">Procesos animados</span><span className="hero-tab__short">Animación</span></button>
+        <div className="hero__rail">
+          <div className="hero__tabs" role="tablist" aria-label="Soluciones destacadas" onKeyDown={onTabKeyDown}>
+            <button id="hero-tab-0" role="tab" aria-label="Software a medida" aria-controls="hero-panel-0" aria-selected={slide === 0} tabIndex={slide === 0 ? 0 : -1} className={slide === 0 ? 'is-active' : ''} onClick={() => select(0)}><Icon name="code"/><span className="hero-tab__wide">Software a medida</span><span className="hero-tab__short">Software</span></button>
+            <button id="hero-tab-1" role="tab" aria-label="SEO y reseñas NFC" aria-controls="hero-panel-1" aria-selected={slide === 1} tabIndex={slide === 1 ? 0 : -1} className={slide === 1 ? 'is-active' : ''} onClick={() => select(1)}><Icon name="search"/><span className="hero-tab__wide">SEO + reseñas NFC</span><span className="hero-tab__short">SEO + NFC</span></button>
+            <button id="hero-tab-2" role="tab" aria-label="Procesos animados" aria-controls="hero-panel-2" aria-selected={slide === 2} tabIndex={slide === 2 ? 0 : -1} className={slide === 2 ? 'is-active' : ''} onClick={() => select(2)}><Icon name="pulse"/><span className="hero-tab__wide">Procesos animados</span><span className="hero-tab__short">Animación</span></button>
+          </div>
           <span className="hero__count">0{slide + 1} / 03</span>
           <div className="hero__arrows">
             <button type="button" aria-label="Ver propuesta anterior" onClick={() => select(slide - 1)}><Icon name="chevronLeft"/></button>
@@ -315,10 +328,10 @@ function Hero() {
         </div>
 
         <div className="hero__viewport">
-          <section className={`hero-slide ${slide === 0 ? 'is-active' : ''}`} aria-hidden={slide !== 0}>
+          <section id="hero-panel-0" role="tabpanel" aria-labelledby="hero-tab-0" className={`hero-slide ${slide === 0 ? 'is-active' : ''}`} aria-hidden={slide !== 0} inert={slide !== 0}>
             <div className="hero-copy">
-              <h1>Software que entiende cómo funciona tu empresa.</h1>
-              <p>Diseñamos herramientas a la medida para que tu equipo trabaje con menos pasos, vea mejor la operación y pueda crecer sin improvisar.</p>
+              <h1>{servicesMode ? 'Servicios de software diseñados alrededor de tu empresa.' : 'Software que entiende cómo funciona tu empresa.'}</h1>
+              <p>{servicesMode ? 'Creamos software empresarial, aplicaciones web y automatizaciones adaptadas a procesos reales, con acompañamiento técnico para seguir evolucionando.' : 'Desarrollamos software a la medida para empresas en Colombia: aplicaciones web y sistemas que ordenan la operación, automatizan procesos y facilitan el crecimiento.'}</p>
               <div className="hero-copy__actions">
                 <a className="button" href={whatsappUrl()} target="_blank" rel="noreferrer">Cuéntanos qué necesitas <Icon name="arrow"/></a>
                 <a className="text-link" href="/#proyectos">Ver proyectos <span className="text-link__arrow" aria-hidden="true">↓</span></a>
@@ -328,7 +341,7 @@ function Hero() {
             <PhoneStage demoIndex={demoIndex}/>
           </section>
 
-          <section className={`hero-slide ${slide === 1 ? 'is-active' : ''}`} aria-hidden={slide !== 1}>
+          <section id="hero-panel-1" role="tabpanel" aria-labelledby="hero-tab-1" className={`hero-slide ${slide === 1 ? 'is-active' : ''}`} aria-hidden={slide !== 1} inert={slide !== 1}>
             <div className="hero-copy">
               <h2>Convierte una buena experiencia en una reseña fácil de compartir.</h2>
               <p>Posicionamos tu negocio en búsquedas locales y conectamos cada atención con una tarjeta NFC: el cliente acerca su celular y llega directo a dejar su opinión.</p>
@@ -341,14 +354,14 @@ function Hero() {
             <NfcStage active={slide === 1} />
           </section>
 
-          <section className={`hero-slide hero-slide--process ${slide === 2 ? 'is-active' : ''}`} aria-hidden={slide !== 2}>
+          <section id="hero-panel-2" role="tabpanel" aria-labelledby="hero-tab-2" className={`hero-slide hero-slide--process ${slide === 2 ? 'is-active' : ''}`} aria-hidden={slide !== 2} inert={slide !== 2}>
             <ProcessAnimationStage active={slide === 2} paused={systemPause.paused}/>
           </section>
         </div>
 
         <div className="hero__progress" aria-hidden="true"><i className={slide === 0 ? 'is-active' : ''}/><i className={slide === 1 ? 'is-active' : ''}/><i className={slide === 2 ? 'is-active' : ''}/></div>
       </div>
-    </main>
+    </section>
   )
 }
 
@@ -369,44 +382,33 @@ function ProcessSection() {
   )
 }
 
-function ServicesSection() {
+function ServicesSection({ detailed = false }: { detailed?: boolean }) {
   return (
     <section id="servicios" className="section services-section">
       <div className="shell">
-        <SectionIntro marker="Lo que hacemos" title="Tecnología útil, diseñada alrededor del trabajo real." />
+        <SectionIntro
+          marker="Lo que hacemos"
+          title={detailed ? 'Servicios de desarrollo conectados con la operación real.' : 'Tecnología útil, diseñada alrededor del trabajo real.'}
+          text={detailed ? 'Diseñamos soluciones de software empresarial para organizar procesos, crear experiencias web claras y acompañar la evolución de cada producto.' : undefined}
+        />
         <div className="services-grid">
           {SERVICES.map((service, index) => (
             <article className={`service-card service-card--${index + 1}`} key={service.title}>
               <div className="service-card__icon"><Icon name={service.icon as IconName} size={25}/></div>
               <span className="service-card__index">0{index + 1}</span>
-              <h3>{service.title}</h3><p>{service.text}</p>
-              <a href={whatsappUrl(`Hola, ${service.link.toLowerCase()}.`)} target="_blank" rel="noreferrer">{service.link} <Icon name="arrow"/></a>
+              <h3>{service.title}</h3><p>{detailed ? service.text : service.summary}</p>
+              <div className="service-card__links">
+                {detailed && <a className="service-card__case" href={service.caseHref}>{service.caseLabel} <Icon name="arrow"/></a>}
+                <a href={whatsappUrl(`Hola, ${service.link.toLowerCase()}.`)} target="_blank" rel="noreferrer">{service.link} <Icon name="arrow"/></a>
+              </div>
             </article>
           ))}
         </div>
+        {!detailed && <a className="section-link" href="/servicios/">Conocer nuestros servicios de desarrollo <Icon name="arrow"/></a>}
       </div>
     </section>
   )
 }
-
-const TEAM_MEMBERS = [
-  {
-    name: 'Santiago Fraile Arevalo',
-    role: 'Ingeniero de software',
-    specialty: 'Back-end y arquitectura',
-    bio: 'Desarrollador enfocado en construir sistemas sólidos, APIs claras y procesos que respondan a las necesidades reales de cada negocio.',
-    photo: '/assets/team/WhatsApp Image 2026-09-15 at 12.24.01 PM.jpeg',
-    photoStem: 'santiago',
-  },
-  {
-    name: 'Julian David Torres Saavedra',
-    role: 'Ingeniero de software',
-    specialty: 'Front-end · UX/UI',
-    bio: 'Desarrollador especializado en crear interfaces claras, funcionales y visualmente cuidadas, conectando las necesidades de las personas con experiencias digitales intuitivas.',
-    photo: '/assets/team/ChatGPT Image 15 sept 2026, 04_50_50 p.m.png',
-    photoStem: 'julian',
-  },
-]
 
 function AboutPage() {
   const [brandDocked, setBrandDocked] = useState(false)
@@ -442,14 +444,14 @@ function AboutPage() {
             <div>
               <span className="about-eyebrow">Somos NovaLine</span>
               <h1>Tecnología clara para negocios que quieren avanzar.</h1>
-              <p>Diseñamos productos digitales entendiendo primero a las personas, los procesos y las decisiones que deben facilitar.</p>
+              <p>Somos un equipo de desarrollo de software que diseña soluciones adaptadas a las personas, los procesos y las decisiones de cada empresa.</p>
             </div>
           </div>
         </section>
 
         <section className="about-story-section">
           <div className="shell">
-            <div className="about-story__heading"><span className="about-eyebrow">Nuestra manera de crear</span><h2>Primero entendemos. Después diseñamos. Finalmente construimos.</h2><p>NovaLine nace para acercar la tecnología a empresas que necesitan soluciones propias, sin procesos confusos ni herramientas que obliguen al equipo a cambiar su forma de trabajar.</p></div>
+            <div className="about-story__heading"><span className="about-eyebrow">Nuestra manera de crear</span><h2>Primero entendemos. Después diseñamos. Finalmente construimos.</h2><p>NovaLine acerca la tecnología a empresas que necesitan soluciones propias, sin procesos confusos ni herramientas que obliguen al equipo a cambiar su forma de trabajar. <a href="/#proyectos">Conoce los proyectos que hemos construido.</a></p></div>
             <div ref={methodRef} className={`about-method ${methodVisible ? 'is-visible' : ''}`}>
               <article><span>01</span><h3>Entender</h3><p>Escuchamos el contexto, las personas y el problema antes de proponer tecnología.</p></article>
               <article><span>02</span><h3>Diseñar</h3><p>Convertimos lo aprendido en flujos claros y experiencias fáciles de validar.</p></article>
@@ -478,7 +480,7 @@ function AboutPage() {
                     <picture>
                       <source type="image/avif" srcSet={`/assets/team/responsive/${member.photoStem}-320.avif 320w, /assets/team/responsive/${member.photoStem}-640.avif 640w`} sizes="(max-width: 650px) 285px, 300px" />
                       <source type="image/webp" srcSet={`/assets/team/responsive/${member.photoStem}-320.webp 320w, /assets/team/responsive/${member.photoStem}-640.webp 640w`} sizes="(max-width: 650px) 285px, 300px" />
-                      <img src={member.photo} alt={`Retrato de ${member.name}`} width="1254" height="1254" loading="lazy" decoding="async" />
+                      <img src={member.photo} alt={`${member.name}, ${member.role}`} width="1254" height="1254" loading="lazy" decoding="async" />
                     </picture>
                   </div>
                   <div className="team-card__copy"><span>{member.specialty}</span><h3>{member.name}</h3><strong>{member.role}</strong><p>{member.bio}</p></div>
@@ -654,13 +656,18 @@ function ProjectsSection({ onOpenCase }: { onOpenCase: (slug: CaseSlug) => void 
         </div>
         <div className="projects-viewport">
           <div className={`projects-track ${transitionEnabled ? '' : 'is-resetting'}`} style={{ '--card-width': cardWidth, transform } as CSSProperties} onTransitionEnd={handleTransitionEnd}>
-            {renderedProjects.map(({ project, originalIndex }, renderedIndex) => (
-              <article className={`project-card ${project.featured ? 'project-card--featured' : ''}`} key={`${project.name}-${renderedIndex}`} aria-hidden={renderedIndex < visible || renderedIndex >= visible + projectCount}>
-                <ProjectVisual project={project} index={originalIndex}/>
-                <div className="project-card__content"><div className="project-card__top"><span>{project.category}</span><b>{project.name}</b></div><h3>{project.title}</h3><div className="project-card__metric"><strong>{project.metric}</strong><span>{project.metricLabel}</span></div><div className="tags">{project.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>{project.featured && <span className="project-card__action">Ver caso real <Icon name="arrow" size={16}/></span>}</div>
-                {project.caseStudy && <button className="project-card__open" type="button" aria-label={`Ver caso real de ${project.name}`} onClick={() => onOpenCase(project.caseStudy as CaseSlug)}/>} 
-              </article>
-            ))}
+            {renderedProjects.map(({ project, originalIndex }, renderedIndex) => {
+              const hiddenClone = renderedIndex < visible || renderedIndex >= visible + projectCount
+              return (
+                <article className={`project-card ${project.featured ? 'project-card--featured' : ''}`} key={`${project.name}-${renderedIndex}`} aria-hidden={hiddenClone}>
+                  <ProjectVisual project={project} index={originalIndex}/>
+                  <div className="project-card__content"><div className="project-card__top"><span>{project.category}</span><b>{project.name}</b></div><h3>{project.title}</h3><div className="project-card__metric"><strong>{project.metric}</strong><span>{project.metricLabel}</span></div><div className="tags">{project.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>{project.featured && <span className="project-card__action">Ver caso {project.name} <Icon name="arrow" size={16}/></span>}</div>
+                  {project.caseStudy && (
+                    <a className="project-card__open" href={CASE_ROUTES[project.caseStudy as CaseSlug]} tabIndex={hiddenClone ? -1 : 0} aria-label={`Ver caso real de ${project.name}`} onClick={(event) => { event.preventDefault(); onOpenCase(project.caseStudy as CaseSlug) }}/>
+                  )}
+                </article>
+              )
+            })}
           </div>
         </div>
         <div className="carousel-status"><div>{PROJECTS.map((project, dot) => <button key={project.name} aria-label={`Ver proyecto ${project.name}`} className={dot === index ? 'is-active' : ''} onClick={() => select(dot)}/>)}</div><span>0{index + 1} / 0{projectCount}</span></div>
@@ -785,8 +792,8 @@ function FormulaAnimalCaseStudy({ onClose }: { onClose: () => void }) {
     <main className="case-study case-study--formula">
       <header className="case-header">
         <div className="shell case-header__inner">
-          <span onClick={onClose}><Brand /></span>
-          <button className="case-back" type="button" onClick={onClose}><Icon name="chevronLeft" size={18}/> Volver a proyectos</button>
+          <Brand />
+          <a className="case-back" href="/#proyectos" onClick={(event) => { event.preventDefault(); onClose() }}><Icon name="chevronLeft" size={18}/> Volver a proyectos</a>
         </div>
       </header>
 
@@ -863,13 +870,13 @@ function FormulaAnimalCaseStudy({ onClose }: { onClose: () => void }) {
       <section className="case-result">
         <div className="shell case-result__inner">
           <div><span className="case-index">La idea detrás del sistema</span><h2>No digitalizamos pantallas. Conectamos decisiones.</h2></div>
-          <p>Fórmula Animal muestra cómo una herramienta a medida puede reflejar una operación compleja sin obligar al equipo a trabajar alrededor del software.</p>
+          <p>Fórmula Animal muestra cómo una herramienta a medida puede reflejar una operación compleja sin obligar al equipo a trabajar alrededor del software. <a href="/servicios/">Conoce nuestros servicios de software a medida.</a></p>
           <a className="button" href={whatsappUrl('Hola, vi el caso del CRM Fórmula Animal y quiero conversar sobre un sistema para mi empresa.')} target="_blank" rel="noreferrer">Quiero construir algo así <Icon name="arrow"/></a>
         </div>
       </section>
       {expandedImage && (
         <div className="case-lightbox" role="dialog" aria-modal="true" aria-label="Captura ampliada" onClick={() => setExpandedImage(null)}>
-          <button className="case-lightbox__close" type="button" aria-label="Cerrar captura" onClick={() => setExpandedImage(null)}><Icon name="x" size={22}/></button>
+          <button className="case-lightbox__close" type="button" aria-label="Cerrar captura" autoFocus onClick={() => setExpandedImage(null)}><Icon name="x" size={22}/></button>
           <ProjectScreenshot src={expandedImage.src} alt={expandedImage.alt} sizes={SCREENSHOT_SIZES.lightbox} onClick={(event) => event.stopPropagation()} />
         </div>
       )}
@@ -925,8 +932,8 @@ function NativeHausCaseStudy({ onClose }: { onClose: () => void }) {
     <main className="case-study case-study--native">
       <header className="case-header">
         <div className="shell case-header__inner">
-          <span onClick={onClose}><Brand /></span>
-          <button className="case-back" type="button" onClick={onClose}><Icon name="chevronLeft" size={18}/> Volver a proyectos</button>
+          <Brand />
+          <a className="case-back" href="/#proyectos" onClick={(event) => { event.preventDefault(); onClose() }}><Icon name="chevronLeft" size={18}/> Volver a proyectos</a>
         </div>
       </header>
 
@@ -1003,13 +1010,13 @@ function NativeHausCaseStudy({ onClose }: { onClose: () => void }) {
       <section className="case-result">
         <div className="shell case-result__inner">
           <div><span className="case-index">El resultado</span><h2>Una presencia digital tan funcional como los muebles que presenta.</h2></div>
-          <p>Nativhaus reúne identidad, catálogo y asesoría en una experiencia responsive pensada para vender productos terminados y captar solicitudes personalizadas.</p>
+          <p>Nativhaus reúne identidad, catálogo y asesoría en una experiencia responsive pensada para vender productos terminados y captar solicitudes personalizadas. <a href="/servicios/">Conoce nuestros servicios de experiencias web.</a></p>
           <a className="button" href={whatsappUrl('Hola, vi el caso de Nativhaus y quiero conversar sobre una landing comercial para mi empresa.')} target="_blank" rel="noreferrer">Quiero una landing así <Icon name="arrow"/></a>
         </div>
       </section>
       {expandedImage && (
         <div className="case-lightbox" role="dialog" aria-modal="true" aria-label="Captura ampliada" onClick={() => setExpandedImage(null)}>
-          <button className="case-lightbox__close" type="button" aria-label="Cerrar captura" onClick={() => setExpandedImage(null)}><Icon name="x" size={22}/></button>
+          <button className="case-lightbox__close" type="button" aria-label="Cerrar captura" autoFocus onClick={() => setExpandedImage(null)}><Icon name="x" size={22}/></button>
           <ProjectScreenshot src={expandedImage.src} alt={expandedImage.alt} sizes={SCREENSHOT_SIZES.lightbox} onClick={(event) => event.stopPropagation()} />
         </div>
       )}
@@ -1070,8 +1077,8 @@ function NexusPosCaseStudy({ onClose }: { onClose: () => void }) {
     <main className="case-study case-study--nexus">
       <header className="case-header">
         <div className="shell case-header__inner">
-          <span onClick={onClose}><Brand /></span>
-          <button className="case-back" type="button" onClick={onClose}><Icon name="chevronLeft" size={18}/> Volver a proyectos</button>
+          <Brand />
+          <a className="case-back" href="/#proyectos" onClick={(event) => { event.preventDefault(); onClose() }}><Icon name="chevronLeft" size={18}/> Volver a proyectos</a>
         </div>
       </header>
 
@@ -1146,14 +1153,14 @@ function NexusPosCaseStudy({ onClose }: { onClose: () => void }) {
       <section className="case-result">
         <div className="shell case-result__inner">
           <div><span className="case-index">El resultado</span><h2>Un ERP que acompaña la venta y también todo lo que ocurre después.</h2></div>
-          <p>NexusPOS convierte actividades dispersas en una operación comercial trazable, preparada para atender, controlar y crecer desde una sola plataforma.</p>
+          <p>NexusPOS convierte actividades dispersas en una operación comercial trazable, preparada para atender, controlar y crecer desde una sola plataforma. <a href="/servicios/">Conoce nuestros servicios de software empresarial.</a></p>
           <a className="button" href={whatsappUrl('Hola, vi el caso de NexusPOS y quiero conversar sobre un ERP comercial para mi negocio.')} target="_blank" rel="noreferrer">Quiero un ERP así <Icon name="arrow"/></a>
         </div>
       </section>
 
       {expandedImage && (
         <div className="case-lightbox" role="dialog" aria-modal="true" aria-label="Captura ampliada" onClick={() => setExpandedImage(null)}>
-          <button className="case-lightbox__close" type="button" aria-label="Cerrar captura" onClick={() => setExpandedImage(null)}><Icon name="x" size={22}/></button>
+          <button className="case-lightbox__close" type="button" aria-label="Cerrar captura" autoFocus onClick={() => setExpandedImage(null)}><Icon name="x" size={22}/></button>
           <ProjectScreenshot src={expandedImage.src} alt={expandedImage.alt} sizes={SCREENSHOT_SIZES.lightbox} onClick={(event) => event.stopPropagation()} />
         </div>
       )}
@@ -1214,8 +1221,8 @@ function LiaCaseStudy({ onClose }: { onClose: () => void }) {
     <main className="case-study case-study--lia">
       <header className="case-header">
         <div className="shell case-header__inner">
-          <span onClick={onClose}><Brand /></span>
-          <button className="case-back" type="button" onClick={onClose}><Icon name="chevronLeft" size={18}/> Volver a proyectos</button>
+          <Brand />
+          <a className="case-back" href="/#proyectos" onClick={(event) => { event.preventDefault(); onClose() }}><Icon name="chevronLeft" size={18}/> Volver a proyectos</a>
         </div>
       </header>
 
@@ -1290,14 +1297,14 @@ function LiaCaseStudy({ onClose }: { onClose: () => void }) {
       <section className="case-result">
         <div className="shell case-result__inner">
           <div><span className="case-index">El resultado</span><h2>Una nueva forma de automatizar procesos sin perder el criterio humano.</h2></div>
-          <p>Lia concentra información y tareas repetitivas en una experiencia conversacional, para que cada equipo dedique menos tiempo a buscar y más tiempo a decidir.</p>
+          <p>Lia concentra información y tareas repetitivas en una experiencia conversacional, para que cada equipo dedique menos tiempo a buscar y más tiempo a decidir. <a href="/servicios/">Conoce nuestros servicios de automatización.</a></p>
           <a className="button" href={whatsappUrl('Hola, vi el caso de Lia y quiero conversar sobre un agente inteligente para automatizar procesos en mi empresa.')} target="_blank" rel="noreferrer">Quiero un agente así <Icon name="arrow"/></a>
         </div>
       </section>
 
       {expandedImage && (
         <div className="case-lightbox" role="dialog" aria-modal="true" aria-label="Captura ampliada" onClick={() => setExpandedImage(null)}>
-          <button className="case-lightbox__close" type="button" aria-label="Cerrar captura" onClick={() => setExpandedImage(null)}><Icon name="x" size={22}/></button>
+          <button className="case-lightbox__close" type="button" aria-label="Cerrar captura" autoFocus onClick={() => setExpandedImage(null)}><Icon name="x" size={22}/></button>
           <ProjectScreenshot src={expandedImage.src} alt={expandedImage.alt} sizes={SCREENSHOT_SIZES.lightbox} onClick={(event) => event.stopPropagation()} />
         </div>
       )}
@@ -1333,7 +1340,7 @@ function Footer() {
 }
 
 function ServicesPage() {
-  return <><Header/><Hero/><ServicesSection/><ContactSection dark/><Footer/></>
+  return <><Header/><main><Hero servicesMode/><ServicesSection detailed/><ContactSection dark/></main><Footer/></>
 }
 
 export default function App({ initialPath }: { initialPath?: string }) {
@@ -1368,5 +1375,5 @@ export default function App({ initialPath }: { initialPath?: string }) {
   if (route.key === 'lia') return <LiaCaseStudy onClose={closeCase}/>
   if (route.key === 'about') return <AboutPage />
   if (route.key === 'services') return <ServicesPage />
-  return <><Header/><Hero/><ProcessSection/><ServicesSection/><ProjectsSection onOpenCase={openCase}/><ContactSection dark/><Footer/></>
+  return <><Header/><main><Hero/><ProcessSection/><ServicesSection/><ProjectsSection onOpenCase={openCase}/><ContactSection dark/></main><Footer/></>
 }
