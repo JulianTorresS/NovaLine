@@ -12,13 +12,22 @@ describe('NovaLine landing', () => {
     expect(navigation).toHaveTextContent('Servicios')
     expect(navigation).toHaveTextContent('Nosotros')
     expect(navigation).toHaveTextContent('Contacto')
+    expect(navigation.querySelector('a[href="/servicios/#servicios"]')).toHaveTextContent('Servicios')
   })
 
   it('presenta las tres propuestas del hero', () => {
     render(<App />)
     expect(screen.getByRole('tab', { name: /Software a medida/i })).toBeInTheDocument()
-    expect(screen.getByRole('tab', { name: /SEO \+ reseñas NFC/i })).toBeInTheDocument()
+    const nfcTab = screen.getByRole('tab', { name: /SEO \+ reseñas NFC/i })
+    expect(nfcTab).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: /Procesos animados/i })).toBeInTheDocument()
+    expect(screen.queryByAltText(/Tarjeta física para solicitar reseñas/i)).not.toBeInTheDocument()
+
+    fireEvent.click(nfcTab)
+    const nfcImage = screen.getByAltText(/Tarjeta física para solicitar reseñas/i)
+    expect(nfcImage).toHaveAttribute('width', '1063')
+    expect(nfcImage).toHaveAttribute('height', '1094')
+    expect(nfcImage.parentElement?.querySelector('source[type="image/avif"]')).toHaveAttribute('srcset', expect.stringContaining('google-review-nfc-card-real-320.avif'))
   })
 
   it('presenta la identidad y la sección Nosotros de NovaLine', () => {
@@ -95,6 +104,9 @@ describe('NovaLine landing', () => {
     const heroScreenshot = screen.getByAltText('Conversación con el agente inteligente Lia')
     expect(heroScreenshot).toHaveAttribute('srcset', expect.stringContaining('/assets/lia/responsive/asistente-1280.png'))
     expect(heroScreenshot).toHaveAttribute('sizes', expect.stringContaining('635px'))
+    expect(heroScreenshot).toHaveAttribute('width', '1916')
+    expect(heroScreenshot).toHaveAttribute('height', '911')
+    expect(heroScreenshot.parentElement?.querySelector('source[type="image/avif"]')).toHaveAttribute('srcset', expect.stringContaining('/assets/lia/responsive/asistente-1280.avif'))
     fireEvent.click(screen.getByRole('button', { name: /Configurar/ }))
     expect(screen.getByRole('heading', { name: 'El agente se adapta a la identidad y al motor de cada empresa' })).toBeInTheDocument()
   })

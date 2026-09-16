@@ -172,15 +172,25 @@ function PhoneStage({ demoIndex }: { demoIndex: number }) {
   )
 }
 
-function NfcStage() {
+function NfcStage({ active }: { active: boolean }) {
   return (
     <div className="nfc-stage">
       <div className="nfc-photo-card">
-        <img
-          src="/assets/google-review-nfc-card-real.png"
-          alt="Tarjeta física para solicitar reseñas de Google mediante NFC"
-          draggable="false"
-        />
+        {active && (
+          <picture>
+            <source type="image/avif" srcSet="/assets/responsive/google-review-nfc-card-real-320.avif 320w, /assets/responsive/google-review-nfc-card-real-640.avif 640w, /assets/responsive/google-review-nfc-card-real-1063.avif 1063w" sizes="(max-width: 650px) 278px, 390px" />
+            <source type="image/webp" srcSet="/assets/responsive/google-review-nfc-card-real-320.webp 320w, /assets/responsive/google-review-nfc-card-real-640.webp 640w, /assets/responsive/google-review-nfc-card-real-1063.webp 1063w" sizes="(max-width: 650px) 278px, 390px" />
+            <img
+              src="/assets/google-review-nfc-card-real.png"
+              alt="Tarjeta física para solicitar reseñas de Google mediante NFC"
+              width="1063"
+              height="1094"
+              loading="eager"
+              decoding="async"
+              draggable="false"
+            />
+          </picture>
+        )}
         <div className="nfc-radar" aria-hidden="true"><i/><i/><i/></div>
       </div>
     </div>
@@ -328,7 +338,7 @@ function Hero() {
               </div>
               <div className="hero-proof"><span><Icon name="check"/> Perfil optimizado</span><span><Icon name="check"/> Acceso directo a la reseña</span></div>
             </div>
-            <NfcStage />
+            <NfcStage active={slide === 1} />
           </section>
 
           <section className={`hero-slide hero-slide--process ${slide === 2 ? 'is-active' : ''}`} aria-hidden={slide !== 2}>
@@ -386,6 +396,7 @@ const TEAM_MEMBERS = [
     specialty: 'Back-end y arquitectura',
     bio: 'Desarrollador enfocado en construir sistemas sólidos, APIs claras y procesos que respondan a las necesidades reales de cada negocio.',
     photo: '/assets/team/WhatsApp Image 2026-09-15 at 12.24.01 PM.jpeg',
+    photoStem: 'santiago',
   },
   {
     name: 'Julian David Torres Saavedra',
@@ -393,6 +404,7 @@ const TEAM_MEMBERS = [
     specialty: 'Front-end · UX/UI',
     bio: 'Desarrollador especializado en crear interfaces claras, funcionales y visualmente cuidadas, conectando las necesidades de las personas con experiencias digitales intuitivas.',
     photo: '/assets/team/ChatGPT Image 15 sept 2026, 04_50_50 p.m.png',
+    photoStem: 'julian',
   },
 ]
 
@@ -462,7 +474,13 @@ function AboutPage() {
             <div className="team-grid">
               {TEAM_MEMBERS.map((member) => (
                 <article className="team-card" key={member.name}>
-                  <div className="team-card__portrait"><img src={member.photo} alt={`Retrato de ${member.name}`} loading="lazy" /></div>
+                  <div className="team-card__portrait">
+                    <picture>
+                      <source type="image/avif" srcSet={`/assets/team/responsive/${member.photoStem}-320.avif 320w, /assets/team/responsive/${member.photoStem}-640.avif 640w`} sizes="(max-width: 650px) 285px, 300px" />
+                      <source type="image/webp" srcSet={`/assets/team/responsive/${member.photoStem}-320.webp 320w, /assets/team/responsive/${member.photoStem}-640.webp 640w`} sizes="(max-width: 650px) 285px, 300px" />
+                      <img src={member.photo} alt={`Retrato de ${member.name}`} width="1254" height="1254" loading="lazy" decoding="async" />
+                    </picture>
+                  </div>
                   <div className="team-card__copy"><span>{member.specialty}</span><h3>{member.name}</h3><strong>{member.role}</strong><p>{member.bio}</p></div>
                 </article>
               ))}
@@ -477,12 +495,19 @@ function AboutPage() {
 }
 
 function ProjectVisual({ project, index }: { project: typeof PROJECTS[number]; index: number }) {
+  const cover = (folder: string) => (
+    <picture>
+      <source type="image/avif" srcSet={`/assets/${folder}/responsive/cover-384.avif 384w, /assets/${folder}/responsive/cover-744.avif 744w`} sizes="(max-width: 650px) calc(100vw - 48px), 377px" />
+      <source type="image/webp" srcSet={`/assets/${folder}/responsive/cover-384.webp 384w, /assets/${folder}/responsive/cover-744.webp 744w`} sizes="(max-width: 650px) calc(100vw - 48px), 377px" />
+      <img src={`/assets/${folder}/cover.png`} alt="" width="744" height="378" loading="lazy" decoding="async" />
+    </picture>
+  )
   if (project.caseStudy === 'lia') {
     return (
       <div className="project-visual project-visual--lia" aria-hidden="true">
         <div className="project-real-window project-real-window--lia">
           <div className="project-real-window__bar"><i/><i/><i/><span>lia.enterprise.ai</span></div>
-          <div className="project-real-crop project-real-crop--lia"><img src="/assets/lia/cover.png" alt="" width="744" height="378" loading="lazy" decoding="async" /></div>
+          <div className="project-real-crop project-real-crop--lia">{cover('lia')}</div>
         </div>
       </div>
     )
@@ -492,7 +517,7 @@ function ProjectVisual({ project, index }: { project: typeof PROJECTS[number]; i
       <div className="project-visual project-visual--nexus" aria-hidden="true">
         <div className="project-real-window project-real-window--nexus">
           <div className="project-real-window__bar"><i/><i/><i/><span>app.nexuspos.co</span></div>
-          <div className="project-real-crop project-real-crop--nexus"><img src="/assets/nexus-pos/cover.png" alt="" width="744" height="378" loading="lazy" decoding="async" /></div>
+          <div className="project-real-crop project-real-crop--nexus">{cover('nexus-pos')}</div>
         </div>
       </div>
     )
@@ -502,7 +527,7 @@ function ProjectVisual({ project, index }: { project: typeof PROJECTS[number]; i
       <div className="project-visual project-visual--real" aria-hidden="true">
         <div className="project-real-window">
           <div className="project-real-window__bar"><i/><i/><i/><span>crm.formulaanimal.com</span></div>
-          <div className="project-real-crop"><img src="/assets/crm-formula-animal/cover.png" alt="" width="744" height="378" loading="lazy" decoding="async" /></div>
+          <div className="project-real-crop">{cover('crm-formula-animal')}</div>
         </div>
       </div>
     )
@@ -512,7 +537,7 @@ function ProjectVisual({ project, index }: { project: typeof PROJECTS[number]; i
       <div className="project-visual project-visual--native" aria-hidden="true">
         <div className="project-real-window project-real-window--native">
           <div className="project-real-window__bar"><i/><i/><i/><span>nativehaus.co</span></div>
-          <div className="project-real-crop project-real-crop--native"><img src="/assets/native-haus/cover.png" alt="" width="744" height="378" loading="lazy" decoding="async" /></div>
+          <div className="project-real-crop project-real-crop--native">{cover('native-haus')}</div>
         </div>
       </div>
     )
@@ -651,6 +676,29 @@ const SCREENSHOT_SIZES = {
   lightbox: '96vw',
 } as const
 
+const SCREENSHOT_DIMENSIONS: Record<string, readonly [number, number]> = {
+  '/assets/crm-formula-animal/calidad.png': [1902, 902],
+  '/assets/crm-formula-animal/crear-pedido.png': [1901, 908],
+  '/assets/crm-formula-animal/dashboard.png': [1905, 906],
+  '/assets/crm-formula-animal/facturacion.png': [1905, 905],
+  '/assets/crm-formula-animal/logistica.png': [1907, 887],
+  '/assets/native-haus/catalogo.png': [1895, 867],
+  '/assets/native-haus/cotizador.png': [1895, 867],
+  '/assets/native-haus/hero.png': [1895, 867],
+  '/assets/native-haus/universos.png': [1895, 867],
+  '/assets/nexus-pos/caja.png': [1917, 900],
+  '/assets/nexus-pos/domicilios.png': [1905, 902],
+  '/assets/nexus-pos/inventario.png': [1912, 907],
+  '/assets/nexus-pos/modulos.png': [1908, 907],
+  '/assets/nexus-pos/pos.png': [1916, 901],
+  '/assets/nexus-pos/reportes.png': [1910, 902],
+  '/assets/lia/archivados.png': [288, 902],
+  '/assets/lia/asistente.png': [1916, 911],
+  '/assets/lia/configuracion.png': [1906, 897],
+  '/assets/lia/estrategia.png': [1913, 903],
+  '/assets/lia/exportados.png': [292, 896],
+}
+
 function ProjectScreenshot({ src, alt, sizes, priority = false, onClick }: { src: string; alt: string; sizes: string; priority?: boolean; onClick?: MouseEventHandler<HTMLImageElement> }) {
   const separator = src.lastIndexOf('/')
   const folder = src.slice(0, separator)
@@ -659,8 +707,17 @@ function ProjectScreenshot({ src, alt, sizes, priority = false, onClick }: { src
   const smallWidth = narrow ? 384 : 1280
   const largeWidth = narrow ? 768 : 3200
   const srcSet = `${folder}/responsive/${stem}-${smallWidth}.png ${smallWidth}w, ${folder}/responsive/${stem}-${largeWidth}.png ${largeWidth}w`
+  const avifSrcSet = srcSet.replaceAll('.png', '.avif')
+  const webpSrcSet = srcSet.replaceAll('.png', '.webp')
+  const [width, height] = SCREENSHOT_DIMENSIONS[src]
 
-  return <img src={src} srcSet={srcSet} sizes={sizes} alt={alt} loading={priority ? 'eager' : 'lazy'} decoding={priority ? 'auto' : 'async'} fetchPriority={priority ? 'high' : 'auto'} onClick={onClick} />
+  return (
+    <picture>
+      <source type="image/avif" srcSet={avifSrcSet} sizes={sizes} />
+      <source type="image/webp" srcSet={webpSrcSet} sizes={sizes} />
+      <img src={src} srcSet={srcSet} sizes={sizes} alt={alt} width={width} height={height} loading={priority ? 'eager' : 'lazy'} decoding={priority ? 'auto' : 'async'} fetchPriority={priority ? 'high' : 'auto'} onClick={onClick} />
+    </picture>
+  )
 }
 
 const CRM_VIEWS = [

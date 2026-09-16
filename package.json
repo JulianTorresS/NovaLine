@@ -8,6 +8,7 @@
     "build": "tsc -b && npm run build:client && npm run build:ssr && node scripts/prerender.mjs",
     "build:client": "vite build",
     "build:ssr": "vite build --ssr src/entry-server.tsx --outDir .ssr-dist",
+    "images:optimize": "node scripts/optimize-images.mjs",
     "test": "vitest run",
     "preview": "vite preview"
   },
@@ -24,6 +25,7 @@
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "jsdom": "latest",
+    "sharp": "^0.35.4",
     "vitest": "latest"
   }
 }
