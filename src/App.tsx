@@ -9,7 +9,7 @@ type ClarityCommand = ((...args: unknown[]) => void) & { q?: unknown[][] }
 
 function useClarityTracking() {
   useEffect(() => {
-    if (window.location.hostname !== 'novalinesoftware.com') return
+    if (!['novalinesoftware.com', 'www.novalinesoftware.com'].includes(window.location.hostname)) return
 
     const clarityWindow = window as typeof window & { clarity?: ClarityCommand }
     const source = 'https://www.clarity.ms/tag/yje8n0pthh'
