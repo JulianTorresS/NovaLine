@@ -106,7 +106,7 @@ describe('NovaLine landing', () => {
     expect(heroScreenshot).toHaveAttribute('sizes', expect.stringContaining('635px'))
     expect(heroScreenshot).toHaveAttribute('width', '1916')
     expect(heroScreenshot).toHaveAttribute('height', '911')
-    expect(heroScreenshot.parentElement?.querySelector('source[type="image/avif"]')).toHaveAttribute('srcset', expect.stringContaining('/assets/lia/responsive/asistente-1280.avif'))
+    expect(heroScreenshot.parentElement?.querySelector('source[type="image/webp"]')).toHaveAttribute('srcset', expect.stringContaining('/assets/lia/responsive/asistente-1280.webp'))
     fireEvent.click(screen.getByRole('button', { name: /Configurar/ }))
     expect(screen.getByRole('heading', { name: 'El agente se adapta a la identidad y al motor de cada empresa' })).toBeInTheDocument()
   })

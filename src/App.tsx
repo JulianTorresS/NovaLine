@@ -700,6 +700,9 @@ const SCREENSHOT_DIMENSIONS: Record<string, readonly [number, number]> = {
 }
 
 function ProjectScreenshot({ src, alt, sizes, priority = false, onClick }: { src: string; alt: string; sizes: string; priority?: boolean; onClick?: MouseEventHandler<HTMLImageElement> }) {
+  const loadImmediately = priority || Boolean(onClick)
+  const [shouldLoad, setShouldLoad] = useState(loadImmediately)
+  const pictureRef = useRef<HTMLPictureElement>(null)
   const separator = src.lastIndexOf('/')
   const folder = src.slice(0, separator)
   const stem = src.slice(separator + 1).replace(/\.[^.]+$/, '')
@@ -707,15 +710,26 @@ function ProjectScreenshot({ src, alt, sizes, priority = false, onClick }: { src
   const smallWidth = narrow ? 384 : 1280
   const largeWidth = narrow ? 768 : 3200
   const srcSet = `${folder}/responsive/${stem}-${smallWidth}.png ${smallWidth}w, ${folder}/responsive/${stem}-${largeWidth}.png ${largeWidth}w`
-  const avifSrcSet = srcSet.replaceAll('.png', '.avif')
-  const webpSrcSet = srcSet.replaceAll('.png', '.webp')
+  const webpSrcSet = `${folder}/responsive/${stem}-${smallWidth}.webp?v=2 ${smallWidth}w, ${folder}/responsive/${stem}-${largeWidth}.webp?v=2 ${largeWidth}w`
   const [width, height] = SCREENSHOT_DIMENSIONS[src]
 
+  useEffect(() => {
+    if (shouldLoad) return
+    const picture = pictureRef.current
+    if (!picture) return
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return
+      setShouldLoad(true)
+      observer.disconnect()
+    }, { rootMargin: '100px 0px' })
+    observer.observe(picture)
+    return () => observer.disconnect()
+  }, [shouldLoad])
+
   return (
-    <picture>
-      <source type="image/avif" srcSet={avifSrcSet} sizes={sizes} />
-      <source type="image/webp" srcSet={webpSrcSet} sizes={sizes} />
-      <img src={src} srcSet={srcSet} sizes={sizes} alt={alt} width={width} height={height} loading={priority ? 'eager' : 'lazy'} decoding={priority ? 'auto' : 'async'} fetchPriority={priority ? 'high' : 'auto'} onClick={onClick} />
+    <picture ref={pictureRef}>
+      {shouldLoad && <source type="image/webp" srcSet={webpSrcSet} sizes={sizes} />}
+      <img src={shouldLoad ? src : undefined} srcSet={shouldLoad ? srcSet : undefined} sizes={sizes} alt={alt} width={width} height={height} loading={priority ? 'eager' : 'lazy'} decoding={priority ? 'auto' : 'async'} fetchPriority={priority ? 'high' : 'auto'} onClick={onClick} />
     </picture>
   )
 }

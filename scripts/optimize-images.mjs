@@ -6,15 +6,24 @@ const root = process.cwd()
 const publicDir = path.join(root, 'public')
 const generated = []
 
-async function encode(inputRelative, outputRelative, width) {
+async function encode(inputRelative, outputRelative, width, { preserveDetail = false } = {}) {
   const input = path.join(publicDir, inputRelative)
   const outputBase = path.join(publicDir, outputRelative)
   await mkdir(path.dirname(outputBase), { recursive: true })
 
   const source = sharp(input).resize({ width, withoutEnlargement: true })
-  const avifPath = `${outputBase}.avif`
   const webpPath = `${outputBase}.webp`
 
+  if (preserveDetail) {
+    await source.webp({ nearLossless: true, quality: 90, effort: 6 }).toFile(webpPath)
+    generated.push({
+      file: path.relative(root, webpPath).replaceAll('\\', '/'),
+      bytes: (await stat(webpPath)).size,
+    })
+    return
+  }
+
+  const avifPath = `${outputBase}.avif`
   await Promise.all([
     source.clone().avif({ quality: 65, effort: 6, chromaSubsampling: '4:4:4' }).toFile(avifPath),
     source.clone().webp({ quality: 82, effort: 6, smartSubsample: true }).toFile(webpPath),
@@ -64,6 +73,7 @@ for (const project of ['crm-formula-animal', 'native-haus', 'nexus-pos', 'lia'])
       `assets/${project}/responsive/${filename}`,
       `assets/${project}/responsive/${filename.replace(/\.png$/, '')}`,
       width,
+      { preserveDetail: true },
     )
   }
 }
