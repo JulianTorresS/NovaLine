@@ -8,11 +8,11 @@ export const SITE = {
 }
 
 export const NAV_ITEMS = [
-  { label: 'Proceso', href: '#proceso' },
-  { label: 'Servicios', href: '#servicios' },
-  { label: 'Proyectos', href: '#proyectos' },
-  { label: 'Contacto', href: '#contacto' },
-  { label: 'Nosotros', href: '#nosotros' },
+  { label: 'Proceso', href: '/#proceso', sectionId: 'proceso' },
+  { label: 'Servicios', href: '/servicios/', sectionId: 'servicios' },
+  { label: 'Proyectos', href: '/#proyectos', sectionId: 'proyectos' },
+  { label: 'Contacto', href: '/#contacto', sectionId: 'contacto' },
+  { label: 'Nosotros', href: '/nosotros/', sectionId: 'nosotros' },
 ]
 
 export const PHONE_DEMOS = [

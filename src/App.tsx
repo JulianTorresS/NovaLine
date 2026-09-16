@@ -1,5 +1,7 @@
 import { CSSProperties, MouseEventHandler, ReactNode, TouchEvent, TransitionEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { NAV_ITEMS, PHONE_DEMOS, PROCESS, PROJECTS, SERVICES, SITE, whatsappUrl } from './config'
+import { CASE_ROUTES, resolveRoute } from './routes'
+import { applySeoToDocument } from './seo'
 
 type IconName = 'arrow' | 'check' | 'chevronLeft' | 'chevronRight' | 'code' | 'layers' | 'menu' | 'pulse' | 'quote' | 'search' | 'x'
 
@@ -62,7 +64,7 @@ function BrandGlyph() {
 
 function Brand({ light = false }: { light?: boolean }) {
   return (
-    <a className={`brand ${light ? 'brand--light' : ''}`} href="#inicio" aria-label="NovaLine, ir al inicio">
+    <a className={`brand ${light ? 'brand--light' : ''}`} href="/" aria-label="NovaLine, ir al inicio">
       <span className="brand__mark"><BrandGlyph /></span>
       <span>NovaLine</span>
     </a>
@@ -96,7 +98,7 @@ function Header({ aboutMode = false, onAboutBrandChange }: { aboutMode?: boolean
   }, [aboutMode, onAboutBrandChange])
 
   useEffect(() => {
-    const sections = NAV_ITEMS.map((item) => document.querySelector(item.href)).filter(Boolean) as Element[]
+    const sections = NAV_ITEMS.map((item) => document.getElementById(item.sectionId)).filter(Boolean) as Element[]
     const observer = new IntersectionObserver(
       (entries) => entries.forEach((entry) => entry.isIntersecting && setActive(entry.target.id)),
       { rootMargin: '-35% 0px -55% 0px' },
@@ -111,7 +113,7 @@ function Header({ aboutMode = false, onAboutBrandChange }: { aboutMode?: boolean
         <div className="header__brand-slot"><Brand /></div>
         <nav className={`nav ${open ? 'nav--open' : ''}`} aria-label="Navegación principal">
           {NAV_ITEMS.map((item) => (
-            <a key={item.href} className={active === item.href.slice(1) ? 'is-active' : ''} href={item.href} onClick={() => setOpen(false)}>{item.label}</a>
+            <a key={item.href} className={active === item.sectionId ? 'is-active' : ''} href={item.href} onClick={() => setOpen(false)}>{item.label}</a>
           ))}
           <a className="button button--small nav__mobile-cta" href={whatsappUrl()} target="_blank" rel="noreferrer"><WhatsAppIcon /> Cotizar proyecto</a>
         </nav>
@@ -256,11 +258,15 @@ function ProcessAnimationStage({ active, paused }: { active: boolean; paused: bo
 }
 
 function Hero() {
-  const [slide, setSlide] = useState(() => new URLSearchParams(window.location.search).get('service') === 'seo' ? 1 : 0)
+  const [slide, setSlide] = useState(0)
   const [demoIndex, setDemoIndex] = useState(0)
   const [paused, setPaused] = useState(false)
   const systemPause = useSystemPause<HTMLElement>()
   const touchStart = useRef<number | null>(null)
+
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('service') === 'seo') setSlide(1)
+  }, [])
 
   useEffect(() => {
     if (paused || systemPause.paused) return
@@ -305,7 +311,7 @@ function Hero() {
               <p>Diseñamos herramientas a la medida para que tu equipo trabaje con menos pasos, vea mejor la operación y pueda crecer sin improvisar.</p>
               <div className="hero-copy__actions">
                 <a className="button" href={whatsappUrl()} target="_blank" rel="noreferrer">Cuéntanos qué necesitas <Icon name="arrow"/></a>
-                <a className="text-link" href="#proyectos">Ver proyectos <span className="text-link__arrow" aria-hidden="true">↓</span></a>
+                <a className="text-link" href="/#proyectos">Ver proyectos <span className="text-link__arrow" aria-hidden="true">↓</span></a>
               </div>
               <div className="hero-proof"><span><Icon name="check"/> Alcance claro</span><span><Icon name="check"/> Entregas por etapas</span><span><Icon name="check"/> Soporte cercano</span></div>
             </div>
@@ -396,9 +402,7 @@ function AboutPage() {
   const methodRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    document.title = 'Nosotros | NovaLine'
     window.scrollTo({ top: 0 })
-    return () => { document.title = 'NovaLine' }
   }, [])
 
   useEffect(() => {
@@ -692,9 +696,7 @@ function FormulaAnimalCaseStudy({ onClose }: { onClose: () => void }) {
   const activeView = CRM_VIEWS[view]
 
   useEffect(() => {
-    document.title = 'Fórmula Animal CRM | NovaLine'
     window.scrollTo({ top: 0 })
-    return () => { document.title = 'NovaLine' }
   }, [])
 
   useEffect(() => {
@@ -832,9 +834,7 @@ function NativeHausCaseStudy({ onClose }: { onClose: () => void }) {
   const activeView = NATIVE_HAUS_VIEWS[view]
 
   useEffect(() => {
-    document.title = 'Nativhaus | NovaLine'
     window.scrollTo({ top: 0 })
-    return () => { document.title = 'NovaLine' }
   }, [])
 
   useEffect(() => {
@@ -981,9 +981,7 @@ function NexusPosCaseStudy({ onClose }: { onClose: () => void }) {
   const expand = (src: string, alt: string) => setExpandedImage({ src, alt })
 
   useEffect(() => {
-    document.title = 'NexusPOS ERP comercial | NovaLine'
     window.scrollTo({ top: 0 })
-    return () => { document.title = 'NovaLine' }
   }, [])
 
   useEffect(() => {
@@ -1127,9 +1125,7 @@ function LiaCaseStudy({ onClose }: { onClose: () => void }) {
   const expand = (src: string, alt: string) => setExpandedImage({ src, alt })
 
   useEffect(() => {
-    document.title = 'Lia, agente inteligente empresarial | NovaLine'
     window.scrollTo({ top: 0 })
-    return () => { document.title = 'NovaLine' }
   }, [])
 
   useEffect(() => {
@@ -1265,31 +1261,41 @@ function Footer() {
   return <footer className="footer"><div className="shell footer__inner"><Brand/><div className="footer__nav">{NAV_ITEMS.map((item) => <a href={item.href} key={item.href}>{item.label}</a>)}</div><span>© {new Date().getFullYear()} NovaLine</span></div></footer>
 }
 
-export default function App() {
-  type PageRoute = CaseSlug | 'nosotros' | null
-  const getRouteFromHash = (): PageRoute => window.location.hash === '#proyecto-formula-animal' ? 'formula-animal' : window.location.hash === '#proyecto-native-haus' ? 'native-haus' : window.location.hash === '#proyecto-nexus-pos' ? 'nexus-pos' : window.location.hash === '#proyecto-lia' ? 'lia' : window.location.hash === '#nosotros' ? 'nosotros' : null
-  const [route, setRoute] = useState<PageRoute>(getRouteFromHash)
+function ServicesPage() {
+  return <><Header/><Hero/><ServicesSection/><ContactSection dark/><Footer/></>
+}
+
+export default function App({ initialPath }: { initialPath?: string }) {
+  const [pathname, setPathname] = useState(() => initialPath ?? (typeof window === 'undefined' ? '/' : window.location.pathname))
+  const route = resolveRoute(pathname)
 
   useEffect(() => {
-    const syncRoute = () => setRoute(getRouteFromHash())
-    window.addEventListener('hashchange', syncRoute)
-    return () => window.removeEventListener('hashchange', syncRoute)
+    const syncRoute = () => setPathname(window.location.pathname)
+    window.addEventListener('popstate', syncRoute)
+    return () => window.removeEventListener('popstate', syncRoute)
   }, [])
 
-  const openCase = (slug: CaseSlug) => {
-    window.location.hash = `proyecto-${slug}`
-    setRoute(slug)
-  }
-  const closeCase = () => {
-    setRoute(null)
-    window.location.hash = 'proyectos'
-    window.setTimeout(() => document.getElementById('proyectos')?.scrollIntoView(), 0)
+  useEffect(() => applySeoToDocument(route.path), [route.path])
+
+  const navigate = (href: string) => {
+    const url = new URL(href, window.location.origin)
+    window.history.pushState({}, '', `${url.pathname}${url.search}${url.hash}`)
+    setPathname(url.pathname)
+    if (url.hash) window.setTimeout(() => document.getElementById(url.hash.slice(1))?.scrollIntoView(), 0)
   }
 
-  if (route === 'formula-animal') return <FormulaAnimalCaseStudy onClose={closeCase}/>
-  if (route === 'native-haus') return <NativeHausCaseStudy onClose={closeCase}/>
-  if (route === 'nexus-pos') return <NexusPosCaseStudy onClose={closeCase}/>
-  if (route === 'lia') return <LiaCaseStudy onClose={closeCase}/>
-  if (route === 'nosotros') return <AboutPage />
+  const openCase = (slug: CaseSlug) => {
+    navigate(CASE_ROUTES[slug])
+  }
+  const closeCase = () => {
+    navigate('/#proyectos')
+  }
+
+  if (route.key === 'formula-animal') return <FormulaAnimalCaseStudy onClose={closeCase}/>
+  if (route.key === 'native-haus') return <NativeHausCaseStudy onClose={closeCase}/>
+  if (route.key === 'nexus-pos') return <NexusPosCaseStudy onClose={closeCase}/>
+  if (route.key === 'lia') return <LiaCaseStudy onClose={closeCase}/>
+  if (route.key === 'about') return <AboutPage />
+  if (route.key === 'services') return <ServicesPage />
   return <><Header/><Hero/><ProcessSection/><ServicesSection/><ProjectsSection onOpenCase={openCase}/><ContactSection dark/><Footer/></>
 }
