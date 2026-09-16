@@ -7,5 +7,6 @@ vite.config.d.ts
 .env.*
 !.env.example
 .tmp_*.py
+.seo-cache/
 .DS_Store
 Thumbs.db

@@ -1,4 +1,4 @@
-import { CSSProperties, ReactNode, TouchEvent, TransitionEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { CSSProperties, MouseEventHandler, ReactNode, TouchEvent, TransitionEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { NAV_ITEMS, PHONE_DEMOS, PROCESS, PROJECTS, SERVICES, SITE, whatsappUrl } from './config'
 
 type IconName = 'arrow' | 'check' | 'chevronLeft' | 'chevronRight' | 'code' | 'layers' | 'menu' | 'pulse' | 'quote' | 'search' | 'x'
@@ -572,7 +572,7 @@ const SCREENSHOT_SIZES = {
   lightbox: '96vw',
 } as const
 
-function ProjectScreenshot({ src, alt, sizes, priority = false }: { src: string; alt: string; sizes: string; priority?: boolean }) {
+function ProjectScreenshot({ src, alt, sizes, priority = false, onClick }: { src: string; alt: string; sizes: string; priority?: boolean; onClick?: MouseEventHandler<HTMLImageElement> }) {
   const separator = src.lastIndexOf('/')
   const folder = src.slice(0, separator)
   const stem = src.slice(separator + 1).replace(/\.[^.]+$/, '')
@@ -581,7 +581,7 @@ function ProjectScreenshot({ src, alt, sizes, priority = false }: { src: string;
   const largeWidth = narrow ? 768 : 3200
   const srcSet = `${folder}/responsive/${stem}-${smallWidth}.png ${smallWidth}w, ${folder}/responsive/${stem}-${largeWidth}.png ${largeWidth}w`
 
-  return <img src={src} srcSet={srcSet} sizes={sizes} alt={alt} loading={priority ? 'eager' : 'lazy'} decoding={priority ? 'auto' : 'async'} fetchPriority={priority ? 'high' : 'auto'} />
+  return <img src={src} srcSet={srcSet} sizes={sizes} alt={alt} loading={priority ? 'eager' : 'lazy'} decoding={priority ? 'auto' : 'async'} fetchPriority={priority ? 'high' : 'auto'} onClick={onClick} />
 }
 
 const CRM_VIEWS = [
@@ -656,7 +656,7 @@ function FormulaAnimalCaseStudy({ onClose }: { onClose: () => void }) {
             <div className="case-browser">
               <div className="case-browser__bar"><i/><i/><i/><span>crm.formulaanimal.com</span></div>
               <button className="case-image-trigger" type="button" aria-label="Ampliar dashboard del CRM" onClick={() => setExpandedImage({ src: '/assets/crm-formula-animal/dashboard.png', alt: 'Dashboard del CRM Fórmula Animal' })}>
-                <img src="/assets/crm-formula-animal/dashboard.png" alt="Dashboard del CRM Fórmula Animal" />
+                <ProjectScreenshot src="/assets/crm-formula-animal/dashboard.png" alt="Dashboard del CRM Fórmula Animal" sizes={SCREENSHOT_SIZES.hero} priority />
               </button>
             </div>
             <div className="case-hero__note"><strong>Información para decidir</strong><span>Indicadores, metas y actividad del mes en una sola vista.</span></div>
@@ -668,7 +668,7 @@ function FormulaAnimalCaseStudy({ onClose }: { onClose: () => void }) {
         <div className="shell case-story__grid">
           <figure className="case-shot case-shot--tilted">
             <button className="case-image-trigger" type="button" aria-label="Ampliar pantalla de creación de pedidos" onClick={() => setExpandedImage({ src: '/assets/crm-formula-animal/crear-pedido.png', alt: 'Pantalla para crear un pedido en el CRM Fórmula Animal' })}>
-              <img src="/assets/crm-formula-animal/crear-pedido.png" alt="Pantalla para crear un pedido en el CRM Fórmula Animal" />
+              <ProjectScreenshot src="/assets/crm-formula-animal/crear-pedido.png" alt="Pantalla para crear un pedido en el CRM Fórmula Animal" sizes={SCREENSHOT_SIZES.story} />
             </button>
             <figcaption><span>Captura real del módulo de pedidos</span><button type="button" onClick={() => setExpandedImage({ src: '/assets/crm-formula-animal/crear-pedido.png', alt: 'Pantalla para crear un pedido en el CRM Fórmula Animal' })}>Ver captura completa</button></figcaption>
           </figure>
@@ -702,7 +702,7 @@ function FormulaAnimalCaseStudy({ onClose }: { onClose: () => void }) {
           <div className="case-viewer">
             <div className="case-viewer__screen" key={activeView.src}>
               <button className="case-image-trigger" type="button" aria-label={`Ampliar vista de ${activeView.name}`} onClick={() => setExpandedImage({ src: activeView.src, alt: `Vista del módulo de ${activeView.name} en el CRM Fórmula Animal` })}>
-                <img src={activeView.src} alt={`Vista del módulo de ${activeView.name} en el CRM Fórmula Animal`} />
+                <ProjectScreenshot src={activeView.src} alt={`Vista del módulo de ${activeView.name} en el CRM Fórmula Animal`} sizes={SCREENSHOT_SIZES.viewer} />
               </button>
             </div>
             <div className="case-viewer__caption">
@@ -722,7 +722,7 @@ function FormulaAnimalCaseStudy({ onClose }: { onClose: () => void }) {
       {expandedImage && (
         <div className="case-lightbox" role="dialog" aria-modal="true" aria-label="Captura ampliada" onClick={() => setExpandedImage(null)}>
           <button className="case-lightbox__close" type="button" aria-label="Cerrar captura" onClick={() => setExpandedImage(null)}><Icon name="x" size={22}/></button>
-          <img src={expandedImage.src} alt={expandedImage.alt} onClick={(event) => event.stopPropagation()} />
+          <ProjectScreenshot src={expandedImage.src} alt={expandedImage.alt} sizes={SCREENSHOT_SIZES.lightbox} onClick={(event) => event.stopPropagation()} />
         </div>
       )}
       <Footer />
@@ -798,7 +798,7 @@ function NativeHausCaseStudy({ onClose }: { onClose: () => void }) {
             <div className="case-browser">
               <div className="case-browser__bar"><i/><i/><i/><span>nativehaus.co</span></div>
               <button className="case-image-trigger" type="button" aria-label="Ampliar portada de Nativhaus" onClick={() => expand('/assets/native-haus/hero.png', 'Portada de la landing de Nativhaus')}>
-                <img src="/assets/native-haus/hero.png" alt="Portada de la landing de Nativhaus" />
+                <ProjectScreenshot src="/assets/native-haus/hero.png" alt="Portada de la landing de Nativhaus" sizes={SCREENSHOT_SIZES.hero} priority />
               </button>
             </div>
             <div className="case-hero__note"><strong>Propuesta clara desde el inicio</strong><span>Producto, oficio artesanal y dos caminos de conversión en el primer pantallazo.</span></div>
@@ -810,7 +810,7 @@ function NativeHausCaseStudy({ onClose }: { onClose: () => void }) {
         <div className="shell case-story__grid">
           <figure className="case-shot case-shot--tilted">
             <button className="case-image-trigger" type="button" aria-label="Ampliar líneas de diseño de Nativhaus" onClick={() => expand('/assets/native-haus/universos.png', 'Líneas de diseño de Nativhaus')}>
-              <img src="/assets/native-haus/universos.png" alt="Líneas de diseño de Nativhaus" />
+              <ProjectScreenshot src="/assets/native-haus/universos.png" alt="Líneas de diseño de Nativhaus" sizes={SCREENSHOT_SIZES.story} />
             </button>
             <figcaption><span>Captura real de las líneas de producto</span><button type="button" onClick={() => expand('/assets/native-haus/universos.png', 'Líneas de diseño de Nativhaus')}>Ver captura completa</button></figcaption>
           </figure>
@@ -844,7 +844,7 @@ function NativeHausCaseStudy({ onClose }: { onClose: () => void }) {
           <div className="case-viewer">
             <div className="case-viewer__screen" key={activeView.src}>
               <button className="case-image-trigger" type="button" aria-label={`Ampliar vista de ${activeView.name}`} onClick={() => expand(activeView.src, `${activeView.name} de la landing Nativhaus`)}>
-                <img src={activeView.src} alt={`${activeView.name} de la landing Nativhaus`} />
+                <ProjectScreenshot src={activeView.src} alt={`${activeView.name} de la landing Nativhaus`} sizes={SCREENSHOT_SIZES.viewer} />
               </button>
             </div>
             <div className="case-viewer__caption">
@@ -864,7 +864,7 @@ function NativeHausCaseStudy({ onClose }: { onClose: () => void }) {
       {expandedImage && (
         <div className="case-lightbox" role="dialog" aria-modal="true" aria-label="Captura ampliada" onClick={() => setExpandedImage(null)}>
           <button className="case-lightbox__close" type="button" aria-label="Cerrar captura" onClick={() => setExpandedImage(null)}><Icon name="x" size={22}/></button>
-          <img src={expandedImage.src} alt={expandedImage.alt} onClick={(event) => event.stopPropagation()} />
+          <ProjectScreenshot src={expandedImage.src} alt={expandedImage.alt} sizes={SCREENSHOT_SIZES.lightbox} onClick={(event) => event.stopPropagation()} />
         </div>
       )}
       <Footer />
@@ -943,7 +943,7 @@ function NexusPosCaseStudy({ onClose }: { onClose: () => void }) {
             <div className="case-browser">
               <div className="case-browser__bar"><i/><i/><i/><span>app.nexuspos.co</span></div>
               <button className="case-image-trigger" type="button" aria-label="Ampliar punto de venta de NexusPOS" onClick={() => expand('/assets/nexus-pos/pos.png', 'Punto de venta de NexusPOS')}>
-                <img src="/assets/nexus-pos/pos.png" alt="Punto de venta de NexusPOS" />
+                <ProjectScreenshot src="/assets/nexus-pos/pos.png" alt="Punto de venta de NexusPOS" sizes={SCREENSHOT_SIZES.hero} priority />
               </button>
             </div>
             <div className="case-hero__note"><strong>Vender sin perder el contexto</strong><span>Catálogo, cliente, pedido y medios de pago conviven en el mismo flujo.</span></div>
@@ -955,7 +955,7 @@ function NexusPosCaseStudy({ onClose }: { onClose: () => void }) {
         <div className="shell case-story__grid">
           <figure className="case-shot case-shot--tilted">
             <button className="case-image-trigger" type="button" aria-label="Ampliar selector de módulos de NexusPOS" onClick={() => expand('/assets/nexus-pos/modulos.png', 'Selector de módulos del ERP NexusPOS')}>
-              <img src="/assets/nexus-pos/modulos.png" alt="Selector de módulos del ERP NexusPOS" />
+              <ProjectScreenshot src="/assets/nexus-pos/modulos.png" alt="Selector de módulos del ERP NexusPOS" sizes={SCREENSHOT_SIZES.story} />
             </button>
             <figcaption><span>Acceso centralizado a los módulos del negocio</span><button type="button" onClick={() => expand('/assets/nexus-pos/modulos.png', 'Selector de módulos del ERP NexusPOS')}>Ver captura completa</button></figcaption>
           </figure>
@@ -989,7 +989,7 @@ function NexusPosCaseStudy({ onClose }: { onClose: () => void }) {
           <div className="case-viewer">
             <div className="case-viewer__screen" key={activeView.src}>
               <button className="case-image-trigger" type="button" aria-label={`Ampliar vista de ${activeView.name}`} onClick={() => expand(activeView.src, `${activeView.name} en NexusPOS`)}>
-                <img src={activeView.src} alt={`${activeView.name} en NexusPOS`} />
+                <ProjectScreenshot src={activeView.src} alt={`${activeView.name} en NexusPOS`} sizes={SCREENSHOT_SIZES.viewer} />
               </button>
             </div>
             <div className="case-viewer__caption">
@@ -1010,7 +1010,7 @@ function NexusPosCaseStudy({ onClose }: { onClose: () => void }) {
       {expandedImage && (
         <div className="case-lightbox" role="dialog" aria-modal="true" aria-label="Captura ampliada" onClick={() => setExpandedImage(null)}>
           <button className="case-lightbox__close" type="button" aria-label="Cerrar captura" onClick={() => setExpandedImage(null)}><Icon name="x" size={22}/></button>
-          <img src={expandedImage.src} alt={expandedImage.alt} onClick={(event) => event.stopPropagation()} />
+          <ProjectScreenshot src={expandedImage.src} alt={expandedImage.alt} sizes={SCREENSHOT_SIZES.lightbox} onClick={(event) => event.stopPropagation()} />
         </div>
       )}
       <Footer />
@@ -1089,7 +1089,7 @@ function LiaCaseStudy({ onClose }: { onClose: () => void }) {
             <div className="case-browser">
               <div className="case-browser__bar"><i/><i/><i/><span>lia.enterprise.ai</span></div>
               <button className="case-image-trigger" type="button" aria-label="Ampliar agente inteligente Lia" onClick={() => expand('/assets/lia/asistente.png', 'Conversación con el agente inteligente Lia')}>
-                <img src="/assets/lia/asistente.png" alt="Conversación con el agente inteligente Lia" />
+                <ProjectScreenshot src="/assets/lia/asistente.png" alt="Conversación con el agente inteligente Lia" sizes={SCREENSHOT_SIZES.hero} priority />
               </button>
             </div>
             <div className="case-hero__note"><strong>De la pregunta a la acción</strong><span>Lia consulta, analiza y propone el siguiente paso dentro de la misma conversación.</span></div>
@@ -1101,7 +1101,7 @@ function LiaCaseStudy({ onClose }: { onClose: () => void }) {
         <div className="shell case-story__grid">
           <figure className="case-shot case-shot--tilted">
             <button className="case-image-trigger" type="button" aria-label="Ampliar configuración de Lia" onClick={() => expand('/assets/lia/configuracion.png', 'Configuración y preferencias de Lia')}>
-              <img src="/assets/lia/configuracion.png" alt="Configuración y preferencias de Lia" />
+              <ProjectScreenshot src="/assets/lia/configuracion.png" alt="Configuración y preferencias de Lia" sizes={SCREENSHOT_SIZES.story} />
             </button>
             <figcaption><span>Identidad y motor de inteligencia configurables</span><button type="button" onClick={() => expand('/assets/lia/configuracion.png', 'Configuración y preferencias de Lia')}>Ver captura completa</button></figcaption>
           </figure>
@@ -1135,7 +1135,7 @@ function LiaCaseStudy({ onClose }: { onClose: () => void }) {
           <div className="case-viewer">
             <div className="case-viewer__screen" key={activeView.src}>
               <button className="case-image-trigger" type="button" aria-label={`Ampliar vista de ${activeView.name}`} onClick={() => expand(activeView.src, `${activeView.name} con Lia`)}>
-                <img src={activeView.src} alt={`${activeView.name} con Lia`} />
+                <ProjectScreenshot src={activeView.src} alt={`${activeView.name} con Lia`} sizes={SCREENSHOT_SIZES.viewer} />
               </button>
             </div>
             <div className="case-viewer__caption">
@@ -1156,7 +1156,7 @@ function LiaCaseStudy({ onClose }: { onClose: () => void }) {
       {expandedImage && (
         <div className="case-lightbox" role="dialog" aria-modal="true" aria-label="Captura ampliada" onClick={() => setExpandedImage(null)}>
           <button className="case-lightbox__close" type="button" aria-label="Cerrar captura" onClick={() => setExpandedImage(null)}><Icon name="x" size={22}/></button>
-          <img src={expandedImage.src} alt={expandedImage.alt} onClick={(event) => event.stopPropagation()} />
+          <ProjectScreenshot src={expandedImage.src} alt={expandedImage.alt} sizes={SCREENSHOT_SIZES.lightbox} onClick={(event) => event.stopPropagation()} />
         </div>
       )}
       <Footer />
