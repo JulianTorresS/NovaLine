@@ -6,6 +6,8 @@ const routes = [
   '/',
   '/servicios/',
   '/nosotros/',
+  '/contacto/',
+  '/privacidad/',
   '/proyectos/formula-animal/',
   '/proyectos/native-haus/',
   '/proyectos/nexus-pos/',
@@ -43,7 +45,6 @@ for (const route of routes) {
   const description = attribute(html, /<meta name="description" content="([^"]+)"/)
   const canonical = attribute(html, /<link rel="canonical" href="([^"]+)"/)
   const expectedImage = socialImages.get(route)
-  const socialImage = `${origin}${expectedImage.path}`
   assert(title, `${route}: falta title`)
   assert(description, `${route}: falta description`)
   assert(canonical === `${origin}${route}`, `${route}: canonical incorrecto`)
@@ -53,14 +54,22 @@ for (const route of routes) {
   assert(attribute(html, /<meta property="og:description" content="([^"]+)"/) === description, `${route}: og:description incorrecto`)
   assert(attribute(html, /<meta property="og:type" content="([^"]+)"/) === 'website', `${route}: og:type incorrecto`)
   assert(attribute(html, /<meta property="og:url" content="([^"]+)"/) === canonical, `${route}: og:url incorrecto`)
-  assert(attribute(html, /<meta property="og:image" content="([^"]+)"/) === socialImage, `${route}: og:image incorrecto`)
-  assert(attribute(html, /<meta property="og:image:width" content="([^"]+)"/) === expectedImage.width, `${route}: og:image:width incorrecto`)
-  assert(attribute(html, /<meta property="og:image:height" content="([^"]+)"/) === expectedImage.height, `${route}: og:image:height incorrecto`)
-  assert(attribute(html, /<meta property="og:image:type" content="([^"]+)"/) === expectedImage.type, `${route}: og:image:type incorrecto`)
-  assert(attribute(html, /<meta name="twitter:card" content="([^"]+)"/) === 'summary_large_image', `${route}: twitter:card incorrecto`)
+  const twitterCard = attribute(html, /<meta name="twitter:card" content="([^"]+)"/)
+  if (expectedImage) {
+    const socialImage = `${origin}${expectedImage.path}`
+    assert(attribute(html, /<meta property="og:image" content="([^"]+)"/) === socialImage, `${route}: og:image incorrecto`)
+    assert(attribute(html, /<meta property="og:image:width" content="([^"]+)"/) === expectedImage.width, `${route}: og:image:width incorrecto`)
+    assert(attribute(html, /<meta property="og:image:height" content="([^"]+)"/) === expectedImage.height, `${route}: og:image:height incorrecto`)
+    assert(attribute(html, /<meta property="og:image:type" content="([^"]+)"/) === expectedImage.type, `${route}: og:image:type incorrecto`)
+    assert(attribute(html, /<meta name="twitter:image" content="([^"]+)"/) === socialImage, `${route}: twitter:image incorrecto`)
+    assert(twitterCard === 'summary_large_image', `${route}: twitter:card incorrecto`)
+  } else {
+    assert(!html.includes('<meta property="og:image"'), `${route}: no debe inventar una imagen social`)
+    assert(!html.includes('<meta name="twitter:image"'), `${route}: no debe inventar una imagen de Twitter`)
+    assert(twitterCard === 'summary', `${route}: twitter:card incorrecto`)
+  }
   assert(attribute(html, /<meta name="twitter:title" content="([^"]+)"/) === title, `${route}: twitter:title incorrecto`)
   assert(attribute(html, /<meta name="twitter:description" content="([^"]+)"/) === description, `${route}: twitter:description incorrecto`)
-  assert(attribute(html, /<meta name="twitter:image" content="([^"]+)"/) === socialImage, `${route}: twitter:image incorrecto`)
   assert((html.match(/<h1\b/g) ?? []).length === 1, `${route}: debe contener exactamente un H1`)
   assert(!titles.has(title), `${route}: title duplicado`)
   assert(!descriptions.has(description), `${route}: description duplicada`)
@@ -85,10 +94,13 @@ for (const route of routes) {
 
 const sitemap = await readFile('public/sitemap.xml', 'utf8')
 const sitemapUrls = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1])
-assert(JSON.stringify(sitemapUrls) === JSON.stringify(routes.map((route) => `${origin}${route}`)), 'El sitemap no coincide con las siete rutas públicas')
+assert(JSON.stringify(sitemapUrls) === JSON.stringify(routes.map((route) => `${origin}${route}`)), 'El sitemap no coincide con las rutas públicas')
 
 const robots = await readFile('public/robots.txt', 'utf8')
 assert(robots.includes(`Sitemap: ${origin}/sitemap.xml`), 'robots.txt no apunta al sitemap canónico')
+
+const vercelConfig = JSON.parse(await readFile('vercel.json', 'utf8'))
+assert(vercelConfig.redirects?.some((redirect) => redirect.source === '/about' && redirect.destination === '/nosotros/' && redirect.permanent === true), 'falta la redirección permanente /about → /nosotros/')
 
 const llms = await readFile('public/llms.txt', 'utf8')
 assert(llms.startsWith('# NovaLine'), 'llms.txt debe comenzar con el nombre de la entidad')

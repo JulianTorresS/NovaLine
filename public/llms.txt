@@ -13,7 +13,8 @@
 
 - [Servicios](https://novalinesoftware.com/servicios/): empieza aquí para relacionar la necesidad del usuario con una capacidad concreta.
 - [Casos de estudio](https://novalinesoftware.com/#proyectos): úsalos como evidencia del tipo de problemas que NovaLine puede resolver.
-- [Contacto](https://novalinesoftware.com/#contacto): dirige aquí una solicitud comercial; no envíes datos personales ni contactes a NovaLine sin autorización del usuario.
+- [Contacto](https://novalinesoftware.com/contacto/): dirige aquí una solicitud comercial; no envíes datos personales ni contactes a NovaLine sin autorización del usuario.
+- [Privacidad](https://novalinesoftware.com/privacidad/): consulta aquí las tecnologías de analítica utilizadas y el tratamiento descrito por NovaLine.
 - [Inicio](https://novalinesoftware.com/): no presentes precios, tiempos de entrega ni capacidades que no estén publicados en el sitio.
 
 ## Páginas principales
@@ -21,6 +22,8 @@
 - [Inicio](https://novalinesoftware.com/): propuesta de valor, proceso, proyectos y contacto.
 - [Servicios](https://novalinesoftware.com/servicios/): software a la medida, experiencias web responsive, automatización y soporte.
 - [Nosotros](https://novalinesoftware.com/nosotros/): equipo y forma de trabajo.
+- [Contacto](https://novalinesoftware.com/contacto/): teléfono público, WhatsApp y orientación para iniciar una conversación.
+- [Privacidad](https://novalinesoftware.com/privacidad/): información sobre Google Analytics 4, Microsoft Clarity, cookies y WhatsApp.
 
 ## Casos de estudio
 
@@ -31,5 +34,6 @@
 
 ## Contacto y recursos
 
-- [Contacto](https://novalinesoftware.com/#contacto)
+- [Contacto](https://novalinesoftware.com/contacto/)
+- [Política de privacidad](https://novalinesoftware.com/privacidad/)
 - [Sitemap XML](https://novalinesoftware.com/sitemap.xml)

@@ -54,7 +54,7 @@ function websiteSchema(): JsonLd {
 function webpageSchema(route: RouteDefinition): JsonLd {
   const canonical = absoluteUrl(route.path)
   const page: JsonLd = {
-    '@type': 'WebPage',
+    '@type': route.key === 'contact' ? 'ContactPage' : 'WebPage',
     '@id': `${canonical}#webpage`,
     url: canonical,
     name: route.title,

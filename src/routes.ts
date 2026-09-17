@@ -1,6 +1,6 @@
 export const SITE_ORIGIN = 'https://novalinesoftware.com'
 
-export type RouteKey = 'home' | 'services' | 'about' | 'formula-animal' | 'native-haus' | 'nexus-pos' | 'lia'
+export type RouteKey = 'home' | 'services' | 'about' | 'contact' | 'privacy' | 'formula-animal' | 'native-haus' | 'nexus-pos' | 'lia'
 
 export type RouteDefinition = {
   key: RouteKey
@@ -39,6 +39,18 @@ export const ROUTES: Record<RouteKey, RouteDefinition> = {
     ogImage: '/assets/social/novaline-equipo-1200x630.jpg',
     ogImageWidth: 1200,
     ogImageHeight: 630,
+  },
+  contact: {
+    key: 'contact',
+    path: '/contacto/',
+    title: 'Contacto | NovaLine',
+    description: 'Contacta a NovaLine por teléfono o WhatsApp para conversar sobre una necesidad de software, automatización o producto digital para tu empresa.',
+  },
+  privacy: {
+    key: 'privacy',
+    path: '/privacidad/',
+    title: 'Política de privacidad | NovaLine',
+    description: 'Conoce cómo NovaLine utiliza Google Analytics, Microsoft Clarity, datos técnicos, cookies y enlaces de WhatsApp en este sitio web.',
   },
   'formula-animal': {
     key: 'formula-animal',

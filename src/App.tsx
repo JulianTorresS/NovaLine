@@ -1358,8 +1358,86 @@ function ContactSection({ dark = false }: { dark?: boolean }) {
   )
 }
 
+function ContactPage() {
+  const telephone = `+${SITE.whatsappNumber}`
+  return (
+    <>
+      <Header />
+      <main className="trust-page">
+        <section className="trust-page__hero">
+          <div className="shell trust-page__intro">
+            <span>Contacto</span>
+            <h1>Hablemos de lo que necesitas construir o mejorar.</h1>
+            <p>NovaLine atiende las conversaciones iniciales por teléfono y WhatsApp. Puedes contarnos brevemente el contexto de tu empresa y la necesidad que quieres resolver.</p>
+          </div>
+        </section>
+        <section className="trust-page__body">
+          <div className="shell trust-page__grid">
+            <article className="trust-card">
+              <span>Canal directo</span>
+              <h2>WhatsApp</h2>
+              <p>Usa el canal de contacto existente para iniciar una conversación con NovaLine. WhatsApp se abrirá en una pestaña nueva con un mensaje inicial que puedes editar antes de enviarlo.</p>
+              <a className="button button--whatsapp" href={whatsappUrl()} target="_blank" rel="noreferrer" data-analytics-cta="contact_page_whatsapp"><WhatsAppIcon size={22}/> Escribir por WhatsApp <Icon name="arrow" size={18}/></a>
+            </article>
+            <article className="trust-card">
+              <span>Teléfono público</span>
+              <h2>+57 322 896 8494</h2>
+              <p>También puedes iniciar el contacto desde el número público de NovaLine. No publicamos correo, dirección física ni horarios porque el sitio no dispone actualmente de esos datos.</p>
+              <a className="trust-card__link" href={`tel:${telephone}`}>Llamar al +57 322 896 8494</a>
+            </article>
+          </div>
+        </section>
+      </main>
+      <Footer />
+    </>
+  )
+}
+
+function PrivacyPage() {
+  return (
+    <>
+      <Header />
+      <main className="trust-page">
+        <section className="trust-page__hero">
+          <div className="shell trust-page__intro">
+            <span>Privacidad</span>
+            <h1>Política de privacidad del sitio de NovaLine.</h1>
+            <p>Esta página explica de forma sencilla qué tecnologías de medición utiliza novalinesoftware.com y qué ocurre cuando eliges contactar por WhatsApp.</p>
+          </div>
+        </section>
+        <section className="trust-page__body">
+          <div className="shell privacy-copy">
+            <p className="privacy-copy__updated">Última actualización: 16 de septiembre de 2026.</p>
+            <section>
+              <h2>Datos de navegación y analítica</h2>
+              <p>En el dominio público utilizamos Google Analytics 4 y Microsoft Clarity para entender, de forma agregada, cómo se usa el sitio y detectar oportunidades de mejora. Estas herramientas pueden tratar datos técnicos del navegador y del dispositivo, páginas visitadas, interacciones y datos asociados a cookies u otros identificadores de analítica.</p>
+            </section>
+            <section>
+              <h2>Eventos medidos en el sitio</h2>
+              <p>NovaLine mide interacciones como clics en enlaces de contacto, llamados a la acción y acceso a proyectos. Estos eventos incluyen datos técnicos como la ruta de la página y el destino general del enlace. El sitio no tiene formularios y la analítica implementada no envía nombres, correos, teléfonos, mensajes ni contenido escrito por el visitante.</p>
+            </section>
+            <section>
+              <h2>Contacto mediante WhatsApp</h2>
+              <p>Los botones de contacto abren WhatsApp mediante un enlace externo. Solo cuando decides continuar y enviar un mensaje, la información que compartas será tratada dentro de WhatsApp y recibida por NovaLine para responder a tu solicitud. Revisa también las condiciones y políticas de privacidad de WhatsApp antes de usar ese canal.</p>
+            </section>
+            <section>
+              <h2>Control desde tu navegador</h2>
+              <p>Puedes bloquear o eliminar cookies y otros datos del sitio desde la configuración de tu navegador. Al hacerlo, algunas mediciones de analítica pueden dejar de funcionar, pero el contenido principal del sitio seguirá disponible.</p>
+            </section>
+            <section>
+              <h2>Consultas sobre privacidad</h2>
+              <p>Si tienes una consulta relacionada con esta política, puedes comunicarte mediante la <a href="/contacto/">página de contacto</a> y el canal público de WhatsApp de NovaLine.</p>
+            </section>
+          </div>
+        </section>
+      </main>
+      <Footer />
+    </>
+  )
+}
+
 function Footer() {
-  return <footer className="footer"><div className="shell footer__inner"><Brand/><div className="footer__nav">{NAV_ITEMS.map((item) => <a href={item.href} key={item.href}>{item.label}</a>)}</div><span>© {new Date().getFullYear()} NovaLine</span></div></footer>
+  return <footer className="footer"><div className="shell footer__inner"><Brand/><div className="footer__nav">{NAV_ITEMS.map((item) => <a href={item.href} key={item.href}>{item.label}</a>)}</div><div className="footer__meta"><div className="footer__trust"><a href="/contacto/">Contacto</a><a href="/privacidad/">Privacidad</a></div><span>© {new Date().getFullYear()} NovaLine</span></div></div></footer>
 }
 
 function ServicesPage() {
@@ -1400,5 +1478,7 @@ export default function App({ initialPath }: { initialPath?: string }) {
   if (route.key === 'lia') return <LiaCaseStudy onClose={closeCase}/>
   if (route.key === 'about') return <AboutPage />
   if (route.key === 'services') return <ServicesPage />
+  if (route.key === 'contact') return <ContactPage />
+  if (route.key === 'privacy') return <PrivacyPage />
   return <><Header/><main><Hero/><ProcessSection/><ServicesSection/><ProjectsSection onOpenCase={openCase}/><ContactSection dark/></main><Footer/></>
 }

@@ -11,6 +11,8 @@ const sharedResources = `## Recursos
 
 - [Servicios](${SITE_ORIGIN}/servicios/)
 - [Equipo](${SITE_ORIGIN}/nosotros/)
+- [Contacto](${SITE_ORIGIN}/contacto/)
+- [Política de privacidad](${SITE_ORIGIN}/privacidad/)
 - [Sitemap XML](${SITE_ORIGIN}/sitemap.xml)
 - [Instrucciones para agentes](${SITE_ORIGIN}/llms.txt)`
 
@@ -78,6 +80,33 @@ ${sharedResources}`,
 ## Forma de trabajo
 
 NovaLine mapea el problema y el resultado esperado, diseña una solución validable, construye por etapas y acompaña la adopción y evolución del producto.
+
+${sharedResources}`,
+  '/contacto/': `# Contacto | NovaLine
+
+> NovaLine atiende las conversaciones iniciales por teléfono y mediante su canal público de WhatsApp.
+
+## Cómo contactar
+
+- **WhatsApp y teléfono:** +57 322 896 8494.
+- [Abrir la página de contacto](${SITE_ORIGIN}/contacto/)
+
+El sitio no publica correo, dirección física ni horarios. No envíes datos personales ni contactes a NovaLine sin autorización del usuario.
+
+${sharedResources}`,
+  '/privacidad/': `# Política de privacidad | NovaLine
+
+> NovaLine utiliza Google Analytics 4 y Microsoft Clarity para analizar el uso de su sitio público.
+
+## Tecnologías utilizadas
+
+El sitio puede tratar datos técnicos de navegación, interacciones y datos asociados a cookies u otros identificadores de analítica. También mide clics en contacto, llamados a la acción y proyectos sin enviar nombres, correos, teléfonos, mensajes ni contenido de formularios.
+
+## Contacto externo
+
+Los enlaces de WhatsApp abren un servicio externo. La información solo se comparte cuando el usuario decide enviar un mensaje.
+
+[Leer la política completa](${SITE_ORIGIN}/privacidad/)
 
 ${sharedResources}`,
   '/proyectos/formula-animal/': `# CRM personalizado Fórmula Animal | Caso NovaLine

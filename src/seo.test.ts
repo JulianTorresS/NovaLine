@@ -3,11 +3,13 @@ import { getJsonLd, getSeoMetadata, renderSeoHead } from './seo'
 import { LEGACY_HASH_ROUTES, PUBLIC_ROUTES, SITE_ORIGIN } from './routes'
 
 describe('SEO estructural', () => {
-  it('define únicamente las siete rutas públicas con barra final', () => {
+  it('define únicamente las nueve rutas públicas con barra final', () => {
     expect(PUBLIC_ROUTES.map((route) => route.path)).toEqual([
       '/',
       '/servicios/',
       '/nosotros/',
+      '/contacto/',
+      '/privacidad/',
       '/proyectos/formula-animal/',
       '/proyectos/native-haus/',
       '/proyectos/nexus-pos/',
@@ -57,6 +59,14 @@ describe('SEO estructural', () => {
     expect(() => JSON.parse(JSON.stringify(jsonLd))).not.toThrow()
   })
 
+  it('publica ContactPage para Contacto y WebPage para Privacidad', () => {
+    const contactGraph = getJsonLd('/contacto/')['@graph'] as Array<Record<string, unknown>>
+    const privacyGraph = getJsonLd('/privacidad/')['@graph'] as Array<Record<string, unknown>>
+    expect(contactGraph.map((node) => node['@type'])).toEqual(['Organization', 'WebSite', 'ContactPage'])
+    expect(privacyGraph.map((node) => node['@type'])).toEqual(['Organization', 'WebSite', 'WebPage'])
+    expect(JSON.stringify([contactGraph, privacyGraph])).not.toMatch(/sameAs|address|email|rating|price/i)
+  })
+
   it('asigna la imagen social y dimensiones correctas a cada ruta pública', () => {
     const expectedImages = new Map([
       ['/', { path: '/assets/social/novaline-home-1200x630-v3.png', width: 1200, height: 630, type: 'image/png' }],
@@ -71,17 +81,23 @@ describe('SEO estructural', () => {
     for (const route of PUBLIC_ROUTES) {
       const seo = getSeoMetadata(route.path)
       const expected = expectedImages.get(route.path)
-      expect(seo.image).toBe(`${SITE_ORIGIN}${expected?.path}`)
-      expect(seo.imageWidth).toBe(expected?.width)
-      expect(seo.imageHeight).toBe(expected?.height)
-      expect(seo.imageType).toBe(expected?.type)
-      expect(seo.twitterCard).toBe('summary_large_image')
-
       const head = renderSeoHead(route.path)
-      expect(head).toContain(`<meta property="og:image:width" content="${expected?.width}" />`)
-      expect(head).toContain(`<meta property="og:image:height" content="${expected?.height}" />`)
-      expect(head).toContain(`<meta property="og:image:type" content="${expected?.type}" />`)
-      expect(head).toContain('<meta name="twitter:image" content="')
+      if (expected) {
+        expect(seo.image).toBe(`${SITE_ORIGIN}${expected.path}`)
+        expect(seo.imageWidth).toBe(expected.width)
+        expect(seo.imageHeight).toBe(expected.height)
+        expect(seo.imageType).toBe(expected.type)
+        expect(seo.twitterCard).toBe('summary_large_image')
+        expect(head).toContain(`<meta property="og:image:width" content="${expected.width}" />`)
+        expect(head).toContain(`<meta property="og:image:height" content="${expected.height}" />`)
+        expect(head).toContain(`<meta property="og:image:type" content="${expected.type}" />`)
+        expect(head).toContain('<meta name="twitter:image" content="')
+      } else {
+        expect(seo.image).toBeUndefined()
+        expect(seo.twitterCard).toBe('summary')
+        expect(head).not.toContain('<meta property="og:image"')
+        expect(head).not.toContain('<meta name="twitter:image"')
+      }
     }
   })
 

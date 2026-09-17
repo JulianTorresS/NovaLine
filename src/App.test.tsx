@@ -133,4 +133,31 @@ describe('NovaLine landing', () => {
     expect(screen.getByRole('link', { name: /Ver la experiencia web de Nativhaus/i })).toHaveAttribute('href', '/proyectos/native-haus/')
     expect(screen.getByRole('link', { name: /Ver la automatización con Lia/i })).toHaveAttribute('href', '/proyectos/lia/')
   })
+
+  it('publica el contacto real sin inventar otros datos', () => {
+    window.history.replaceState({}, '', '/contacto/')
+    render(<App initialPath="/contacto/" />)
+    expect(screen.getByRole('heading', { level: 1, name: /Hablemos de lo que necesitas/i })).toBeInTheDocument()
+    expect(screen.getByText('+57 322 896 8494')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Escribir por WhatsApp/i })).toHaveAttribute('href', expect.stringContaining(`wa.me/${SITE.whatsappNumber}`))
+    expect(screen.queryByText(/correo electrónico/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/dirección física/i)).toBeInTheDocument()
+  })
+
+  it('explica con precisión la analítica y el contacto externo', () => {
+    window.history.replaceState({}, '', '/privacidad/')
+    render(<App initialPath="/privacidad/" />)
+    expect(screen.getByRole('heading', { level: 1, name: /Política de privacidad/i })).toBeInTheDocument()
+    expect(screen.getByText(/Google Analytics 4 y Microsoft Clarity/i)).toBeInTheDocument()
+    expect(screen.getByText(/El sitio no tiene formularios/i)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /página de contacto/i })).toHaveAttribute('href', '/contacto/')
+  })
+
+  it('enlaza Contacto y Privacidad desde el footer', () => {
+    window.history.replaceState({}, '', '/')
+    render(<App />)
+    const footer = screen.getByRole('contentinfo')
+    expect(footer.querySelector('a[href="/contacto/"]')).toHaveTextContent('Contacto')
+    expect(footer.querySelector('a[href="/privacidad/"]')).toHaveTextContent('Privacidad')
+  })
 })

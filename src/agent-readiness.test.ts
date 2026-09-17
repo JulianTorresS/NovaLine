@@ -25,7 +25,7 @@ describe('negociación Markdown para agentes', () => {
     expect(negotiateRepresentation(accept)).toBe(expected)
   })
 
-  it('publica Markdown no vacío para las siete rutas', () => {
+  it('publica Markdown no vacío para todas las rutas públicas', () => {
     expect(Object.keys(AGENT_MARKDOWN_ROUTES)).toEqual(PUBLIC_ROUTES.map((route) => route.path))
     for (const route of PUBLIC_ROUTES) {
       expect(getAgentMarkdown(route.path)?.length).toBeGreaterThan(100)
