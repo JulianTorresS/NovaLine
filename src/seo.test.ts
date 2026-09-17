@@ -48,8 +48,8 @@ describe('SEO estructural', () => {
 
   it('asigna la imagen social y dimensiones correctas a cada ruta pública', () => {
     const expectedImages = new Map([
-      ['/', { path: '/assets/social/novaline-home-1200x630.jpg', width: 1200, height: 630, type: 'image/jpeg' }],
-      ['/servicios/', { path: '/assets/social/novaline-servicios-1200x630.jpg', width: 1200, height: 630, type: 'image/jpeg' }],
+      ['/', { path: '/assets/social/novaline-home-1200x630.png', width: 1200, height: 630, type: 'image/png' }],
+      ['/servicios/', { path: '/assets/social/novaline-servicios-1200x630.png', width: 1200, height: 630, type: 'image/png' }],
       ['/nosotros/', { path: '/assets/social/novaline-equipo-1200x630.jpg', width: 1200, height: 630, type: 'image/jpeg' }],
       ['/proyectos/formula-animal/', { path: '/assets/crm-formula-animal/cover.png', width: 744, height: 378, type: 'image/png' }],
       ['/proyectos/native-haus/', { path: '/assets/native-haus/cover.png', width: 744, height: 378, type: 'image/png' }],
