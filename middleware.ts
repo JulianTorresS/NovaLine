@@ -1,4 +1,4 @@
-import { next } from '@vercel/functions'
+import { next } from '@vercel/functions/middleware'
 import {
   createNotFoundMarkdown,
   getAgentMarkdown,
