@@ -8,6 +8,13 @@ const websiteId = `${SITE_ORIGIN}/#website`
 const logoUrl = absoluteUrl('/favicon.svg')
 const caseRouteKeys = new Set(['formula-animal', 'native-haus', 'nexus-pos', 'lia'])
 
+function imageMimeType(path: string) {
+  if (/\.png$/i.test(path)) return 'image/png'
+  if (/\.webp$/i.test(path)) return 'image/webp'
+  if (/\.avif$/i.test(path)) return 'image/avif'
+  return 'image/jpeg'
+}
+
 function organizationSchema(): JsonLd {
   return {
     '@type': 'Organization',
@@ -113,6 +120,9 @@ export function getSeoMetadata(pathname: string) {
     ...route,
     canonical,
     image,
+    imageWidth: image ? route.ogImageWidth : undefined,
+    imageHeight: image ? route.ogImageHeight : undefined,
+    imageType: route.ogImage ? imageMimeType(route.ogImage) : undefined,
     twitterCard: image ? 'summary_large_image' : 'summary',
     jsonLd: getJsonLd(route.path),
   }
@@ -141,6 +151,9 @@ export function renderSeoHead(pathname: string) {
   ]
   if (seo.image) {
     tags.push(`<meta property="og:image" content="${seo.image}" />`)
+    tags.push(`<meta property="og:image:width" content="${seo.imageWidth}" />`)
+    tags.push(`<meta property="og:image:height" content="${seo.imageHeight}" />`)
+    tags.push(`<meta property="og:image:type" content="${seo.imageType}" />`)
     tags.push(`<meta name="twitter:image" content="${seo.image}" />`)
   }
   const json = JSON.stringify(seo.jsonLd).replace(/</g, '\\u003c')
@@ -172,6 +185,9 @@ export function applySeoToDocument(pathname: string) {
   upsertMeta('meta[property="og:site_name"]', 'property', 'og:site_name', 'NovaLine')
   upsertMeta('meta[property="og:locale"]', 'property', 'og:locale', 'es_CO')
   upsertMeta('meta[property="og:image"]', 'property', 'og:image', seo.image)
+  upsertMeta('meta[property="og:image:width"]', 'property', 'og:image:width', seo.imageWidth?.toString())
+  upsertMeta('meta[property="og:image:height"]', 'property', 'og:image:height', seo.imageHeight?.toString())
+  upsertMeta('meta[property="og:image:type"]', 'property', 'og:image:type', seo.imageType)
   upsertMeta('meta[name="twitter:card"]', 'name', 'twitter:card', seo.twitterCard)
   upsertMeta('meta[name="twitter:title"]', 'name', 'twitter:title', seo.title)
   upsertMeta('meta[name="twitter:description"]', 'name', 'twitter:description', seo.description)

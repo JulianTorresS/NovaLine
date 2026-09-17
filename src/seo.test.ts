@@ -46,12 +46,31 @@ describe('SEO estructural', () => {
     expect(() => JSON.parse(JSON.stringify(jsonLd))).not.toThrow()
   })
 
-  it('usa imágenes sociales reales solo en los casos de estudio', () => {
-    expect(getSeoMetadata('/').image).toBeUndefined()
-    expect(getSeoMetadata('/servicios/').image).toBeUndefined()
-    expect(getSeoMetadata('/nosotros/').image).toBeUndefined()
-    for (const route of PUBLIC_ROUTES.filter((item) => item.path.startsWith('/proyectos/'))) {
-      expect(getSeoMetadata(route.path).image).toMatch(/^https:\/\/novalinesoftware\.com\/assets\/.+\/cover\.png$/)
+  it('asigna la imagen social y dimensiones correctas a cada ruta pública', () => {
+    const expectedImages = new Map([
+      ['/', { path: '/assets/social/novaline-home-1200x630.jpg', width: 1200, height: 630, type: 'image/jpeg' }],
+      ['/servicios/', { path: '/assets/social/novaline-servicios-1200x630.jpg', width: 1200, height: 630, type: 'image/jpeg' }],
+      ['/nosotros/', { path: '/assets/social/novaline-equipo-1200x630.jpg', width: 1200, height: 630, type: 'image/jpeg' }],
+      ['/proyectos/formula-animal/', { path: '/assets/crm-formula-animal/cover.png', width: 744, height: 378, type: 'image/png' }],
+      ['/proyectos/native-haus/', { path: '/assets/native-haus/cover.png', width: 744, height: 378, type: 'image/png' }],
+      ['/proyectos/nexus-pos/', { path: '/assets/nexus-pos/cover.png', width: 744, height: 378, type: 'image/png' }],
+      ['/proyectos/lia/', { path: '/assets/lia/cover.png', width: 744, height: 378, type: 'image/png' }],
+    ])
+
+    for (const route of PUBLIC_ROUTES) {
+      const seo = getSeoMetadata(route.path)
+      const expected = expectedImages.get(route.path)
+      expect(seo.image).toBe(`${SITE_ORIGIN}${expected?.path}`)
+      expect(seo.imageWidth).toBe(expected?.width)
+      expect(seo.imageHeight).toBe(expected?.height)
+      expect(seo.imageType).toBe(expected?.type)
+      expect(seo.twitterCard).toBe('summary_large_image')
+
+      const head = renderSeoHead(route.path)
+      expect(head).toContain(`<meta property="og:image:width" content="${expected?.width}" />`)
+      expect(head).toContain(`<meta property="og:image:height" content="${expected?.height}" />`)
+      expect(head).toContain(`<meta property="og:image:type" content="${expected?.type}" />`)
+      expect(head).toContain('<meta name="twitter:image" content="')
     }
   })
 

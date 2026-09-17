@@ -12,6 +12,15 @@ const routes = [
   '/proyectos/lia/',
 ]
 const routeSet = new Set(routes)
+const socialImages = new Map([
+  ['/', { path: '/assets/social/novaline-home-1200x630.jpg', width: '1200', height: '630', type: 'image/jpeg' }],
+  ['/servicios/', { path: '/assets/social/novaline-servicios-1200x630.jpg', width: '1200', height: '630', type: 'image/jpeg' }],
+  ['/nosotros/', { path: '/assets/social/novaline-equipo-1200x630.jpg', width: '1200', height: '630', type: 'image/jpeg' }],
+  ['/proyectos/formula-animal/', { path: '/assets/crm-formula-animal/cover.png', width: '744', height: '378', type: 'image/png' }],
+  ['/proyectos/native-haus/', { path: '/assets/native-haus/cover.png', width: '744', height: '378', type: 'image/png' }],
+  ['/proyectos/nexus-pos/', { path: '/assets/nexus-pos/cover.png', width: '744', height: '378', type: 'image/png' }],
+  ['/proyectos/lia/', { path: '/assets/lia/cover.png', width: '744', height: '378', type: 'image/png' }],
+])
 const titles = new Set()
 const descriptions = new Set()
 const allHtml = []
@@ -33,9 +42,23 @@ for (const route of routes) {
   const title = attribute(html, /<title>([^<]+)<\/title>/)
   const description = attribute(html, /<meta name="description" content="([^"]+)"/)
   const canonical = attribute(html, /<link rel="canonical" href="([^"]+)"/)
+  const expectedImage = socialImages.get(route)
+  const socialImage = `${origin}${expectedImage.path}`
   assert(title, `${route}: falta title`)
   assert(description, `${route}: falta description`)
   assert(canonical === `${origin}${route}`, `${route}: canonical incorrecto`)
+  assert(attribute(html, /<meta property="og:title" content="([^"]+)"/) === title, `${route}: og:title incorrecto`)
+  assert(attribute(html, /<meta property="og:description" content="([^"]+)"/) === description, `${route}: og:description incorrecto`)
+  assert(attribute(html, /<meta property="og:type" content="([^"]+)"/) === 'website', `${route}: og:type incorrecto`)
+  assert(attribute(html, /<meta property="og:url" content="([^"]+)"/) === canonical, `${route}: og:url incorrecto`)
+  assert(attribute(html, /<meta property="og:image" content="([^"]+)"/) === socialImage, `${route}: og:image incorrecto`)
+  assert(attribute(html, /<meta property="og:image:width" content="([^"]+)"/) === expectedImage.width, `${route}: og:image:width incorrecto`)
+  assert(attribute(html, /<meta property="og:image:height" content="([^"]+)"/) === expectedImage.height, `${route}: og:image:height incorrecto`)
+  assert(attribute(html, /<meta property="og:image:type" content="([^"]+)"/) === expectedImage.type, `${route}: og:image:type incorrecto`)
+  assert(attribute(html, /<meta name="twitter:card" content="([^"]+)"/) === 'summary_large_image', `${route}: twitter:card incorrecto`)
+  assert(attribute(html, /<meta name="twitter:title" content="([^"]+)"/) === title, `${route}: twitter:title incorrecto`)
+  assert(attribute(html, /<meta name="twitter:description" content="([^"]+)"/) === description, `${route}: twitter:description incorrecto`)
+  assert(attribute(html, /<meta name="twitter:image" content="([^"]+)"/) === socialImage, `${route}: twitter:image incorrecto`)
   assert((html.match(/<h1\b/g) ?? []).length === 1, `${route}: debe contener exactamente un H1`)
   assert(!titles.has(title), `${route}: title duplicado`)
   assert(!descriptions.has(description), `${route}: description duplicada`)
