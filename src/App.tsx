@@ -500,8 +500,8 @@ function AboutPage() {
                 <article className="team-card" key={member.name}>
                   <div className="team-card__portrait">
                     <picture>
-                      <source type="image/avif" srcSet={`/assets/team/responsive/${member.photoStem}-320.avif 320w, /assets/team/responsive/${member.photoStem}-640.avif 640w`} sizes="(max-width: 650px) 285px, 300px" />
-                      <source type="image/webp" srcSet={`/assets/team/responsive/${member.photoStem}-320.webp 320w, /assets/team/responsive/${member.photoStem}-640.webp 640w`} sizes="(max-width: 650px) 285px, 300px" />
+                      <source type="image/avif" srcSet={`/assets/team/responsive/${member.photoStem}-320.avif 320w, /assets/team/responsive/${member.photoStem}-640.avif 640w`} sizes="(max-width: 650px) calc(100vw - 28px), 300px" />
+                      <source type="image/webp" srcSet={`/assets/team/responsive/${member.photoStem}-320.webp 320w, /assets/team/responsive/${member.photoStem}-640.webp 640w`} sizes="(max-width: 650px) calc(100vw - 28px), 300px" />
                       <img src={member.photo} alt={`${member.name}, ${member.role}`} width="1254" height="1254" loading="lazy" decoding="async" />
                     </picture>
                   </div>
