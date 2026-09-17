@@ -4,7 +4,7 @@ import {
   getAgentMarkdown,
   negotiateRepresentation,
   normalizeAgentPathname,
-} from './agent/markdown'
+} from './agent/markdown.js'
 
 const negotiatedHeaders = {
   'Content-Language': 'es-CO',
