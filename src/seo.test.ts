@@ -23,7 +23,10 @@ describe('SEO estructural', () => {
     expect(seo.title.length).toBeLessThanOrEqual(60)
     expect(seo.description.length).toBeGreaterThanOrEqual(120)
     expect(seo.description.length).toBeLessThanOrEqual(160)
-    expect(renderSeoHead(route.path)).toContain(`href="${seo.canonical}"`)
+    const head = renderSeoHead(route.path)
+    expect(head).toContain(`<link rel="canonical" href="${seo.canonical}" />`)
+    expect(head).toContain(`<link rel="alternate" type="text/markdown" href="${seo.canonical}" />`)
+    expect(head).toContain('<link rel="describedby" href="https://novalinesoftware.com/llms.txt" />')
   })
 
   it('mantiene títulos y descripciones únicos', () => {
@@ -42,6 +45,14 @@ describe('SEO estructural', () => {
       'Service',
       'Service',
     ])
+    const organization = graph.find((node) => node['@type'] === 'Organization')
+    expect(organization?.contactPoint).toEqual({
+      '@type': 'ContactPoint',
+      telephone: '+573228968494',
+      contactType: 'customer service',
+      areaServed: 'CO',
+      availableLanguage: ['es'],
+    })
     expect(JSON.stringify(jsonLd)).not.toMatch(/sameAs|address|email|rating|price/i)
     expect(() => JSON.parse(JSON.stringify(jsonLd))).not.toThrow()
   })

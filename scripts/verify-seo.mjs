@@ -47,6 +47,8 @@ for (const route of routes) {
   assert(title, `${route}: falta title`)
   assert(description, `${route}: falta description`)
   assert(canonical === `${origin}${route}`, `${route}: canonical incorrecto`)
+  assert(html.includes(`<link rel="alternate" type="text/markdown" href="${origin}${route}" />`), `${route}: falta descubrimiento Markdown`)
+  assert(html.includes(`<link rel="describedby" href="${origin}/llms.txt" />`), `${route}: falta descubrimiento de llms.txt`)
   assert(attribute(html, /<meta property="og:title" content="([^"]+)"/) === title, `${route}: og:title incorrecto`)
   assert(attribute(html, /<meta property="og:description" content="([^"]+)"/) === description, `${route}: og:description incorrecto`)
   assert(attribute(html, /<meta property="og:type" content="([^"]+)"/) === 'website', `${route}: og:type incorrecto`)
@@ -88,8 +90,21 @@ assert(JSON.stringify(sitemapUrls) === JSON.stringify(routes.map((route) => `${o
 const robots = await readFile('public/robots.txt', 'utf8')
 assert(robots.includes(`Sitemap: ${origin}/sitemap.xml`), 'robots.txt no apunta al sitemap canónico')
 
+const llms = await readFile('public/llms.txt', 'utf8')
+assert(llms.startsWith('# NovaLine'), 'llms.txt debe comenzar con el nombre de la entidad')
+assert(llms.includes('## When to use NovaLine'), 'llms.txt no explica cuándo usar NovaLine')
+assert(llms.includes('## How agents should use NovaLine'), 'llms.txt no incluye instrucciones para agentes')
+const llmsSections = llms.split(/^## /m).slice(1)
+for (const section of llmsSections) {
+  const contentLines = section.split('\n').slice(1).filter((line) => line.trim())
+  assert(contentLines.every((line) => /^- \[[^\]]+\]\(https:\/\/[^)]+\)(?:: .+)?$/.test(line)), 'cada sección H2 de llms.txt debe ser una lista de enlaces Markdown')
+}
+for (const route of routes) {
+  assert(llms.includes(`${origin}${route}`), `llms.txt no enlaza la ruta pública ${route}`)
+}
+
 const combinedHtml = allHtml.join('\n')
 assert(combinedHtml.includes('type="image/avif"'), 'No se encontraron fuentes AVIF')
 assert(combinedHtml.includes('type="image/webp"'), 'No se encontraron fuentes WebP')
 
-console.log(`SEO verificado: ${routes.length} rutas, metadatos únicos, JSON-LD parseable, enlaces internos válidos y assets responsivos.`)
+console.log(`SEO verificado: ${routes.length} rutas, metadatos únicos, JSON-LD parseable, llms.txt, enlaces internos válidos y assets responsivos.`)

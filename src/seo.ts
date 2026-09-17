@@ -30,6 +30,13 @@ function organizationSchema(): JsonLd {
       height: 64,
     },
     telephone: `+${SITE.whatsappNumber}`,
+    contactPoint: {
+      '@type': 'ContactPoint',
+      telephone: `+${SITE.whatsappNumber}`,
+      contactType: 'customer service',
+      areaServed: 'CO',
+      availableLanguage: ['es'],
+    },
   }
 }
 
@@ -139,6 +146,8 @@ export function renderSeoHead(pathname: string) {
     `<meta name="description" content="${escapeAttribute(seo.description)}" />`,
     '<meta name="robots" content="index,follow,max-image-preview:large" />',
     `<link rel="canonical" href="${seo.canonical}" />`,
+    `<link rel="alternate" type="text/markdown" href="${seo.canonical}" />`,
+    `<link rel="describedby" href="${absoluteUrl('/llms.txt')}" />`,
     `<meta property="og:title" content="${escapeAttribute(seo.title)}" />`,
     `<meta property="og:description" content="${escapeAttribute(seo.description)}" />`,
     '<meta property="og:type" content="website" />',
@@ -200,6 +209,23 @@ export function applySeoToDocument(pathname: string) {
     document.head.appendChild(canonical)
   }
   canonical.href = seo.canonical
+
+  let markdownAlternate = document.head.querySelector<HTMLLinkElement>('link[rel="alternate"][type="text/markdown"]')
+  if (!markdownAlternate) {
+    markdownAlternate = document.createElement('link')
+    markdownAlternate.rel = 'alternate'
+    markdownAlternate.type = 'text/markdown'
+    document.head.appendChild(markdownAlternate)
+  }
+  markdownAlternate.href = seo.canonical
+
+  let llmsDescription = document.head.querySelector<HTMLLinkElement>('link[rel="describedby"]')
+  if (!llmsDescription) {
+    llmsDescription = document.createElement('link')
+    llmsDescription.rel = 'describedby'
+    document.head.appendChild(llmsDescription)
+  }
+  llmsDescription.href = absoluteUrl('/llms.txt')
 
   let jsonLd = document.head.querySelector<HTMLScriptElement>('#novaline-jsonld')
   if (!jsonLd) {
