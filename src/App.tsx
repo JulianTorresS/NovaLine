@@ -2,6 +2,7 @@ import { CSSProperties, KeyboardEvent as ReactKeyboardEvent, MouseEventHandler, 
 import { NAV_ITEMS, PHONE_DEMOS, PROCESS, PROJECTS, SERVICES, SITE, TEAM_MEMBERS, whatsappUrl } from './config'
 import { CASE_ROUTES, resolveRoute } from './routes'
 import { applySeoToDocument } from './seo'
+import { useGoogleAnalytics } from './analytics'
 
 type IconName = 'arrow' | 'check' | 'chevronLeft' | 'chevronRight' | 'code' | 'layers' | 'menu' | 'pulse' | 'quote' | 'search' | 'x'
 
@@ -137,9 +138,9 @@ function Header({ aboutMode = false, onAboutBrandChange }: { aboutMode?: boolean
           {NAV_ITEMS.map((item) => (
             <a key={item.href} className={active === item.sectionId ? 'is-active' : ''} href={item.href} onClick={() => setOpen(false)}>{item.label}</a>
           ))}
-          <a className="button button--small nav__mobile-cta" href={whatsappUrl()} target="_blank" rel="noreferrer"><WhatsAppIcon /> Cotizar proyecto</a>
+          <a className="button button--small nav__mobile-cta" href={whatsappUrl()} target="_blank" rel="noreferrer" data-analytics-cta="quote_project"><WhatsAppIcon /> Cotizar proyecto</a>
         </nav>
-        <a className="button button--small header__cta" href={whatsappUrl()} target="_blank" rel="noreferrer">Cotizar proyecto <Icon name="arrow" /></a>
+        <a className="button button--small header__cta" href={whatsappUrl()} target="_blank" rel="noreferrer" data-analytics-cta="quote_project">Cotizar proyecto <Icon name="arrow" /></a>
         <button className="menu-button" type="button" aria-label={open ? 'Cerrar menú' : 'Abrir menú'} aria-expanded={open} onClick={() => setOpen((value) => !value)}>
           <Icon name={open ? 'x' : 'menu'} size={23} />
         </button>
@@ -355,7 +356,7 @@ function Hero({ servicesMode = false }: { servicesMode?: boolean }) {
               <h1>{servicesMode ? 'Servicios de software diseñados alrededor de tu empresa.' : 'Software que entiende cómo funciona tu empresa.'}</h1>
               <p>{servicesMode ? 'Creamos software empresarial, aplicaciones web y automatizaciones adaptadas a procesos reales, con acompañamiento técnico para seguir evolucionando.' : 'Desarrollamos software a la medida para empresas en Colombia: aplicaciones web y sistemas que ordenan la operación, automatizan procesos y facilitan el crecimiento.'}</p>
               <div className="hero-copy__actions">
-                <a className="button" href={whatsappUrl()} target="_blank" rel="noreferrer">Cuéntanos qué necesitas <Icon name="arrow"/></a>
+                <a className="button" href={whatsappUrl()} target="_blank" rel="noreferrer" data-analytics-cta="discuss_project">Cuéntanos qué necesitas <Icon name="arrow"/></a>
                 <a className="text-link" href="/#proyectos">Ver proyectos <span className="text-link__arrow" aria-hidden="true">↓</span></a>
               </div>
               <div className="hero-proof"><span><Icon name="check"/> Alcance claro</span><span><Icon name="check"/> Entregas por etapas</span><span><Icon name="check"/> Soporte cercano</span></div>
@@ -368,7 +369,7 @@ function Hero({ servicesMode = false }: { servicesMode?: boolean }) {
               <h2>Convierte una buena experiencia en una reseña fácil de compartir.</h2>
               <p>Posicionamos tu negocio en búsquedas locales y conectamos cada atención con una tarjeta NFC: el cliente acerca su celular y llega directo a dejar su opinión.</p>
               <div className="hero-copy__actions">
-                <a className="button" href={whatsappUrl('Hola, quiero mejorar la visibilidad local de mi negocio con SEO y tarjetas NFC.')} target="_blank" rel="noreferrer">Quiero más reseñas <Icon name="arrow"/></a>
+                <a className="button" href={whatsappUrl('Hola, quiero mejorar la visibilidad local de mi negocio con SEO y tarjetas NFC.')} target="_blank" rel="noreferrer" data-analytics-cta="get_more_reviews">Quiero más reseñas <Icon name="arrow"/></a>
                 <span className="rating"><b>5.0</b> ★★★★★</span>
               </div>
               <div className="hero-proof"><span><Icon name="check"/> Perfil optimizado</span><span><Icon name="check"/> Acceso directo a la reseña</span></div>
@@ -893,7 +894,7 @@ function FormulaAnimalCaseStudy({ onClose }: { onClose: () => void }) {
         <div className="shell case-result__inner">
           <div><span className="case-index">La idea detrás del sistema</span><h2>No digitalizamos pantallas. Conectamos decisiones.</h2></div>
           <p>Fórmula Animal muestra cómo una herramienta a medida puede reflejar una operación compleja sin obligar al equipo a trabajar alrededor del software. <a href="/servicios/">Conoce nuestros servicios de software a medida.</a></p>
-          <a className="button" href={whatsappUrl('Hola, vi el caso del CRM Fórmula Animal y quiero conversar sobre un sistema para mi empresa.')} target="_blank" rel="noreferrer">Quiero construir algo así <Icon name="arrow"/></a>
+          <a className="button" href={whatsappUrl('Hola, vi el caso del CRM Fórmula Animal y quiero conversar sobre un sistema para mi empresa.')} target="_blank" rel="noreferrer" data-analytics-cta="build_similar_formula_animal">Quiero construir algo así <Icon name="arrow"/></a>
         </div>
       </section>
       {expandedImage && (
@@ -1033,7 +1034,7 @@ function NativeHausCaseStudy({ onClose }: { onClose: () => void }) {
         <div className="shell case-result__inner">
           <div><span className="case-index">El resultado</span><h2>Una presencia digital tan funcional como los muebles que presenta.</h2></div>
           <p>Nativhaus reúne identidad, catálogo y asesoría en una experiencia responsive pensada para vender productos terminados y captar solicitudes personalizadas. <a href="/servicios/">Conoce nuestros servicios de experiencias web.</a></p>
-          <a className="button" href={whatsappUrl('Hola, vi el caso de Nativhaus y quiero conversar sobre una landing comercial para mi empresa.')} target="_blank" rel="noreferrer">Quiero una landing así <Icon name="arrow"/></a>
+          <a className="button" href={whatsappUrl('Hola, vi el caso de Nativhaus y quiero conversar sobre una landing comercial para mi empresa.')} target="_blank" rel="noreferrer" data-analytics-cta="build_similar_native_haus">Quiero una landing así <Icon name="arrow"/></a>
         </div>
       </section>
       {expandedImage && (
@@ -1176,7 +1177,7 @@ function NexusPosCaseStudy({ onClose }: { onClose: () => void }) {
         <div className="shell case-result__inner">
           <div><span className="case-index">El resultado</span><h2>Un ERP que acompaña la venta y también todo lo que ocurre después.</h2></div>
           <p>NexusPOS convierte actividades dispersas en una operación comercial trazable, preparada para atender, controlar y crecer desde una sola plataforma. <a href="/servicios/">Conoce nuestros servicios de software empresarial.</a></p>
-          <a className="button" href={whatsappUrl('Hola, vi el caso de NexusPOS y quiero conversar sobre un ERP comercial para mi negocio.')} target="_blank" rel="noreferrer">Quiero un ERP así <Icon name="arrow"/></a>
+          <a className="button" href={whatsappUrl('Hola, vi el caso de NexusPOS y quiero conversar sobre un ERP comercial para mi negocio.')} target="_blank" rel="noreferrer" data-analytics-cta="build_similar_nexus_pos">Quiero un ERP así <Icon name="arrow"/></a>
         </div>
       </section>
 
@@ -1320,7 +1321,7 @@ function LiaCaseStudy({ onClose }: { onClose: () => void }) {
         <div className="shell case-result__inner">
           <div><span className="case-index">El resultado</span><h2>Una nueva forma de automatizar procesos sin perder el criterio humano.</h2></div>
           <p>Lia concentra información y tareas repetitivas en una experiencia conversacional, para que cada equipo dedique menos tiempo a buscar y más tiempo a decidir. <a href="/servicios/">Conoce nuestros servicios de automatización.</a></p>
-          <a className="button" href={whatsappUrl('Hola, vi el caso de Lia y quiero conversar sobre un agente inteligente para automatizar procesos en mi empresa.')} target="_blank" rel="noreferrer">Quiero un agente así <Icon name="arrow"/></a>
+          <a className="button" href={whatsappUrl('Hola, vi el caso de Lia y quiero conversar sobre un agente inteligente para automatizar procesos en mi empresa.')} target="_blank" rel="noreferrer" data-analytics-cta="build_similar_lia">Quiero un agente así <Icon name="arrow"/></a>
         </div>
       </section>
 
@@ -1348,7 +1349,7 @@ function ContactSection({ dark = false }: { dark?: boolean }) {
           <div className="contact-card__action">
             <div className="contact-card__rings" aria-hidden="true"><i/><i/><i/></div>
             <span>Conversación directa</span>
-            <a className="button button--whatsapp" href={whatsappUrl()} target="_blank" rel="noreferrer"><WhatsAppIcon size={25}/> Escribir por WhatsApp <Icon name="arrow" size={19}/></a>
+            <a className="button button--whatsapp" href={whatsappUrl()} target="_blank" rel="noreferrer" data-analytics-cta="whatsapp_contact"><WhatsAppIcon size={25}/> Escribir por WhatsApp <Icon name="arrow" size={19}/></a>
             <small>Cuéntanos tu idea sin formularios ni compromiso.</small>
           </div>
         </div>
@@ -1367,6 +1368,7 @@ function ServicesPage() {
 
 export default function App({ initialPath }: { initialPath?: string }) {
   useClarityTracking()
+  useGoogleAnalytics()
   const [pathname, setPathname] = useState(() => initialPath ?? (typeof window === 'undefined' ? '/' : window.location.pathname))
   const route = resolveRoute(pathname)
 
