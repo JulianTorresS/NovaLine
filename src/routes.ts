@@ -18,7 +18,7 @@ export const ROUTES: Record<RouteKey, RouteDefinition> = {
     path: '/',
     title: 'Desarrollo de software a la medida en Colombia | NovaLine',
     description: 'Desarrollamos software a la medida, aplicaciones web y sistemas empresariales que automatizan procesos para empresas en Colombia.',
-    ogImage: '/assets/social/novaline-home-1200x630-v2.png',
+    ogImage: '/assets/social/novaline-home-1200x630-v3.png',
     ogImageWidth: 1200,
     ogImageHeight: 630,
   },

@@ -4,7 +4,7 @@ Las tres piezas aprobadas están integradas como assets JPG de 1200×630 y se pu
 
 | Página | Asset | Dimensiones |
 |---|---|---:|
-| Home | `/assets/social/novaline-home-1200x630-v2.png` | 1200×630 |
+| Home | `/assets/social/novaline-home-1200x630-v3.png` | 1200×630 |
 | Servicios | `/assets/social/novaline-servicios-1200x630-v2.png` | 1200×630 |
 | Nosotros | `/assets/social/novaline-equipo-1200x630.jpg` | 1200×630 |
 | Fórmula Animal | `/assets/crm-formula-animal/cover.png` | 744×378 |

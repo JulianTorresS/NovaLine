@@ -13,7 +13,7 @@ const routes = [
 ]
 const routeSet = new Set(routes)
 const socialImages = new Map([
-  ['/', { path: '/assets/social/novaline-home-1200x630-v2.png', width: '1200', height: '630', type: 'image/png' }],
+  ['/', { path: '/assets/social/novaline-home-1200x630-v3.png', width: '1200', height: '630', type: 'image/png' }],
   ['/servicios/', { path: '/assets/social/novaline-servicios-1200x630-v2.png', width: '1200', height: '630', type: 'image/png' }],
   ['/nosotros/', { path: '/assets/social/novaline-equipo-1200x630.jpg', width: '1200', height: '630', type: 'image/jpeg' }],
   ['/proyectos/formula-animal/', { path: '/assets/crm-formula-animal/cover.png', width: '744', height: '378', type: 'image/png' }],
