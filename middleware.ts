@@ -49,5 +49,6 @@ export default function middleware(request: Request) {
 }
 
 export const config = {
+  runtime: 'nodejs',
   matcher: '/((?!assets/|fonts/|favicon\\.svg|robots\\.txt|sitemap\\.xml|llms\\.txt).*)',
 }

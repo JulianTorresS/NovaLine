@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import middleware from '../middleware'
+import middleware, { config as middlewareConfig } from '../middleware'
 import {
   AGENT_MARKDOWN_ROUTES,
   createNotFoundMarkdown,
@@ -9,6 +9,10 @@ import {
 import { PUBLIC_ROUTES } from './routes'
 
 describe('negociación Markdown para agentes', () => {
+  it('usa el runtime Node.js soportado por Vercel', () => {
+    expect(middlewareConfig.runtime).toBe('nodejs')
+  })
+
   it.each([
     ['text/markdown', 'markdown'],
     ['text/markdown, text/html;q=0.8', 'markdown'],
