@@ -1,33 +1,181 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
 import App from './App'
 import { SITE, whatsappUrl } from './config'
 
 describe('NovaLine landing', () => {
   it('muestra la navegación principal y sus destinos', () => {
+    window.history.replaceState({}, '', '/')
     render(<App />)
     const navigation = screen.getByRole('navigation', { name: 'Navegación principal' })
+    expect(navigation).toHaveTextContent('Inicio')
     expect(navigation).toHaveTextContent('Proyectos')
     expect(navigation).toHaveTextContent('Proceso')
     expect(navigation).toHaveTextContent('Servicios')
     expect(navigation).toHaveTextContent('Nosotros')
     expect(navigation).toHaveTextContent('Contacto')
-    expect(navigation.querySelector('a[href="/servicios/#servicios"]')).toHaveTextContent('Servicios')
+    expect(Array.from(navigation.querySelectorAll(':scope > a:not(.button)')).map((link) => link.textContent)).toEqual([
+      'Inicio',
+      'Proceso',
+      'Proyectos',
+      'Contacto',
+      'Servicios',
+      'Nosotros',
+    ])
+    expect(navigation.querySelector('a[href="/"]')).toHaveTextContent('Inicio')
+    const servicesLink = navigation.querySelector('a[href="/servicios/"]') as HTMLAnchorElement
+    expect(servicesLink).toHaveTextContent('Servicios')
+    fireEvent.click(servicesLink)
+    expect(window.location.pathname).toBe('/servicios/')
+    expect(screen.getByRole('heading', { level: 1, name: /La tecnología correcta se siente parte de tu empresa/i })).toBeInTheDocument()
   })
 
-  it('presenta las tres propuestas del hero', () => {
-    render(<App />)
-    expect(screen.getByRole('tab', { name: /Software a medida/i })).toBeInTheDocument()
-    const nfcTab = screen.getByRole('tab', { name: /SEO y reseñas NFC/i })
-    expect(nfcTab).toBeInTheDocument()
-    expect(screen.getByRole('tab', { name: /Procesos animados/i })).toBeInTheDocument()
-    expect(screen.queryByAltText(/Tarjeta física para solicitar reseñas/i)).not.toBeInTheDocument()
+  it('marca Servicios solamente dentro de su página independiente', () => {
+    window.history.replaceState({}, '', '/servicios/')
+    const { unmount } = render(<App initialPath="/servicios/" />)
+    const servicesPageLink = screen.getByRole('navigation', { name: 'Navegación principal' }).querySelector('a[href="/servicios/"]')
+    expect(servicesPageLink).toHaveClass('is-active')
 
-    fireEvent.click(nfcTab)
-    const nfcImage = screen.getByAltText(/Tarjeta física para solicitar reseñas/i)
-    expect(nfcImage).toHaveAttribute('width', '1063')
-    expect(nfcImage).toHaveAttribute('height', '1094')
-    expect(nfcImage.parentElement?.querySelector('source[type="image/avif"]')).toHaveAttribute('srcset', expect.stringContaining('google-review-nfc-card-real-320.avif'))
+    unmount()
+    window.history.replaceState({}, '', '/')
+    render(<App initialPath="/" />)
+    const servicesHomeLink = screen.getByRole('navigation', { name: 'Navegación principal' }).querySelector('a[href="/servicios/"]')
+    expect(servicesHomeLink).not.toHaveClass('is-active')
+  })
+
+  it('presenta un hero único y conserva el bloque compacto de tres servicios', () => {
+    window.history.replaceState({}, '', '/')
+    const { container } = render(<App />)
+    expect(container.querySelectorAll('#inicio h1')).toHaveLength(1)
+    expect(screen.getByRole('heading', { level: 1, name: /Software que entiende cómo funciona tu empresa/i })).toBeInTheDocument()
+    expect(container.querySelector('#inicio [role="tab"]')).not.toBeInTheDocument()
+    expect(container.querySelector('.hero__count')).not.toBeInTheDocument()
+
+    const services = screen.getByRole('region', { name: 'Servicios de desarrollo de NovaLine' })
+    expect(services.querySelectorAll('.service-card')).toHaveLength(3)
+    expect(services).toHaveTextContent('Software a la medida')
+    expect(services).toHaveTextContent('Experiencias web responsive')
+    expect(services).toHaveTextContent('Automatización y soporte')
+    expect(screen.queryByRole('button', { name: 'Ver servicio siguiente' })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Conocer nuestros servicios de desarrollo/i })).toHaveAttribute('href', '/servicios/')
+  })
+
+  it('integra el video, el símbolo original, el control de pausa y los ocho servicios', () => {
+    window.history.replaceState({}, '', '/')
+    const { container } = render(<App />)
+    expect(container.querySelectorAll('.hero-background video')).toHaveLength(1)
+    const video = container.querySelector<HTMLVideoElement>('.hero-background video')
+    expect(video).toHaveAttribute('autoplay')
+    expect(video).toHaveAttribute('loop')
+    expect(video).toHaveAttribute('playsinline')
+    expect(video?.muted).toBe(true)
+    expect(container.querySelector('.hero-background__glyph .brand__glyph')).toBeInTheDocument()
+
+    const pauseButton = screen.getByRole('button', { name: 'Pausar animaciones' })
+    fireEvent.click(pauseButton)
+    expect(screen.getByRole('button', { name: 'Reanudar animaciones' })).toHaveAttribute('aria-pressed', 'true')
+
+    const ribbon = container.querySelector('.service-ribbon') as HTMLElement
+    expect(ribbon.querySelectorAll('.service-ribbon__group:first-child button')).toHaveLength(8)
+    const softwareCard = Array.from(ribbon.querySelectorAll('button')).find((button) => button.textContent?.includes('Software a medida')) as HTMLButtonElement
+    fireEvent.click(softwareCard)
+    expect(ribbon).toHaveTextContent('Plataformas creadas alrededor de tus procesos')
+    expect(ribbon.querySelector('a[href*="wa.me"]')).toHaveTextContent('Consultar por WhatsApp')
+  })
+
+  it('oculta el detalle del servicio a los diez segundos o al hacer scroll', () => {
+    vi.useFakeTimers()
+
+    try {
+      const { container } = render(<App />)
+      const ribbon = container.querySelector('.service-ribbon') as HTMLElement
+      const softwareCard = Array.from(ribbon.querySelectorAll('button')).find((button) => button.textContent?.includes('Software a medida')) as HTMLButtonElement
+
+      fireEvent.click(softwareCard)
+      expect(ribbon.querySelector('.service-ribbon__detail')).toBeInTheDocument()
+      expect(softwareCard).toHaveClass('is-active')
+      expect(ribbon).toHaveClass('has-detail')
+
+      act(() => vi.advanceTimersByTime(9999))
+      expect(ribbon.querySelector('.service-ribbon__detail')).toBeInTheDocument()
+      act(() => vi.advanceTimersByTime(1))
+      expect(ribbon.querySelector('.service-ribbon__detail')).not.toBeInTheDocument()
+      expect(softwareCard).not.toHaveClass('is-active')
+      expect(ribbon).not.toHaveClass('has-detail')
+
+      fireEvent.click(softwareCard)
+      expect(ribbon.querySelector('.service-ribbon__detail')).toBeInTheDocument()
+      fireEvent.scroll(window)
+      expect(ribbon.querySelector('.service-ribbon__detail')).not.toBeInTheDocument()
+      expect(softwareCard).not.toHaveClass('is-active')
+      expect(ribbon).not.toHaveClass('has-detail')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('permite arrastrar manualmente el carrusel y reanuda al soltarlo', async () => {
+    window.history.replaceState({}, '', '/')
+    const { container } = render(<App />)
+    const ribbon = container.querySelector('.service-ribbon') as HTMLElement
+    const marquee = container.querySelector('.service-ribbon__marquee') as HTMLElement
+    Object.defineProperty(marquee, 'scrollLeft', { configurable: true, value: 120, writable: true })
+
+    fireEvent.pointerDown(marquee, { pointerId: 1, pointerType: 'mouse', button: 0, clientX: 220 })
+    expect(ribbon).toHaveClass('is-interacting')
+    fireEvent.pointerMove(marquee, { pointerId: 1, pointerType: 'mouse', clientX: 160 })
+    expect(marquee.scrollLeft).toBe(180)
+    fireEvent.pointerUp(marquee, { pointerId: 1, pointerType: 'mouse', clientX: 160 })
+    await waitFor(() => expect(ribbon).not.toHaveClass('is-interacting'))
+  })
+
+  it('distingue un clic de un arrastre antes de capturar el puntero', () => {
+    vi.useFakeTimers()
+
+    try {
+      window.history.replaceState({}, '', '/')
+      const { container } = render(<App />)
+      const ribbon = container.querySelector('.service-ribbon') as HTMLElement
+      const marquee = ribbon.querySelector('.service-ribbon__marquee') as HTMLElement
+      const softwareCard = Array.from(ribbon.querySelectorAll('button')).find((button) => button.textContent?.includes('Software a medida')) as HTMLButtonElement
+      const setPointerCapture = vi.fn()
+      const releasePointerCapture = vi.fn()
+      marquee.setPointerCapture = setPointerCapture
+      marquee.releasePointerCapture = releasePointerCapture
+
+      fireEvent.pointerDown(softwareCard, { pointerId: 7, pointerType: 'mouse', button: 0, clientX: 220 })
+      expect(setPointerCapture).not.toHaveBeenCalled()
+      fireEvent.pointerUp(softwareCard, { pointerId: 7, pointerType: 'mouse', button: 0, clientX: 220 })
+      fireEvent.click(softwareCard)
+
+      expect(softwareCard).toHaveClass('is-active')
+      expect(ribbon).toHaveClass('has-detail')
+      expect(ribbon.querySelector('.service-ribbon__detail')).toBeInTheDocument()
+
+      act(() => vi.advanceTimersByTime(0))
+      expect(ribbon).not.toHaveClass('is-interacting')
+      expect(ribbon).toHaveClass('has-detail')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('recicla las opciones después de un arrastre extremo para no dejar espacios vacíos', async () => {
+    window.history.replaceState({}, '', '/')
+    const { container } = render(<App />)
+    const ribbon = container.querySelector('.service-ribbon') as HTMLElement
+    const marquee = ribbon.querySelector('.service-ribbon__marquee') as HTMLElement
+    const track = ribbon.querySelector('.service-ribbon__track') as HTMLElement
+    Object.defineProperty(track, 'scrollWidth', { configurable: true, value: 4800 })
+    Object.defineProperty(marquee, 'scrollLeft', { configurable: true, value: 4000, writable: true })
+
+    fireEvent.pointerDown(marquee, { pointerId: 9, pointerType: 'mouse', button: 0, clientX: 220 })
+    fireEvent.pointerMove(marquee, { pointerId: 9, pointerType: 'mouse', clientX: 120 })
+    fireEvent.pointerUp(marquee, { pointerId: 9, pointerType: 'mouse', clientX: 120 })
+
+    expect(marquee.scrollLeft).toBeGreaterThanOrEqual(1600)
+    expect(marquee.scrollLeft).toBeLessThan(3200)
+    await waitFor(() => expect(ribbon).not.toHaveClass('is-interacting'))
   })
 
   it('presenta la identidad y la sección Nosotros de NovaLine', () => {
@@ -111,24 +259,42 @@ describe('NovaLine landing', () => {
     expect(screen.getByRole('heading', { name: 'El agente se adapta a la identidad y al motor de cada empresa' })).toBeInTheDocument()
   })
 
-  it('mantiene las pestañas y clones ocultos fuera del recorrido de teclado', () => {
+  it('mantiene visibles y accesibles los tres servicios de la portada', () => {
     window.history.replaceState({}, '', '/')
     const { container } = render(<App />)
-    const tabs = screen.getAllByRole('tab')
-    expect(tabs.map((tab) => tab.getAttribute('tabindex'))).toEqual(['0', '-1', '-1'])
-    expect(container.querySelectorAll('.hero-slide[aria-hidden="true"][inert]').length).toBe(2)
+    const services = screen.getByRole('region', { name: 'Servicios de desarrollo de NovaLine' })
+    expect(services.querySelectorAll('article')).toHaveLength(3)
+    expect(container.querySelector('[aria-roledescription="carrusel"]')).not.toBeInTheDocument()
     container.querySelectorAll('.project-card[aria-hidden="true"] .project-card__open').forEach((link) => {
       expect(link).toHaveAttribute('tabindex', '-1')
     })
-    fireEvent.keyDown(tabs[0], { key: 'ArrowRight' })
-    expect(tabs[1]).toHaveAttribute('aria-selected', 'true')
-    expect(tabs[0]).toHaveAttribute('tabindex', '-1')
   })
 
-  it('presenta servicios detallados y enlaces contextuales hacia casos reales', () => {
+  it('abre la experiencia independiente de Servicios sin recargar', () => {
+    window.history.replaceState({}, '', '/')
+    render(<App />)
+
+    fireEvent.click(screen.getByRole('link', { name: /Conocer nuestros servicios de desarrollo/i }))
+
+    expect(window.location.pathname).toBe('/servicios/')
+    expect(window.location.hash).toBe('')
+    expect(screen.getByRole('heading', { level: 1, name: /La tecnología correcta se siente parte de tu empresa/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Una plataforma clara para conectar toda tu operación/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Menos pasos entre una buena experiencia/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Procesos que avanzan sin perder contexto/i })).toBeInTheDocument()
+  })
+
+  it('presenta los servicios por secciones y conserva sus animaciones y casos reales', () => {
     window.history.replaceState({}, '', '/servicios/')
-    render(<App initialPath="/servicios/" />)
-    expect(screen.getByRole('heading', { level: 1, name: /Servicios de software diseñados/i })).toBeInTheDocument()
+    const { container } = render(<App initialPath="/servicios/" />)
+    expect(screen.getByRole('heading', { level: 1, name: /La tecnología correcta se siente parte de tu empresa/i })).toBeInTheDocument()
+    expect(container.querySelectorAll('.service-story')).toHaveLength(3)
+    expect(container.querySelector('.service-ribbon')).not.toBeInTheDocument()
+    expect(container.querySelector('.phone-stage')).toBeInTheDocument()
+    const nfcImage = screen.getByAltText(/Tarjeta física para solicitar reseñas/i)
+    expect(nfcImage).toHaveAttribute('width', '1063')
+    expect(nfcImage.parentElement?.querySelector('source[type="image/avif"]')).toHaveAttribute('srcset', expect.stringContaining('google-review-nfc-card-real-320.avif'))
+    expect(container.querySelector('.process-motion')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Ver el CRM de Fórmula Animal/i })).toHaveAttribute('href', '/proyectos/formula-animal/')
     expect(screen.getByRole('link', { name: /Ver la experiencia web de Nativhaus/i })).toHaveAttribute('href', '/proyectos/native-haus/')
     expect(screen.getByRole('link', { name: /Ver la automatización con Lia/i })).toHaveAttribute('href', '/proyectos/lia/')

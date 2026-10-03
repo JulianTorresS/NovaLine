@@ -85,7 +85,7 @@ for (const route of routes) {
   }
 
   for (const href of [...html.matchAll(/href="([^"]+)"/g)].map((match) => match[1])) {
-    if (!href.startsWith('/') || href.startsWith('//') || href.startsWith('/assets/') || href.startsWith('/fonts/') || href === '/favicon.svg') continue
+    if (!href.startsWith('/') || href.startsWith('//') || href.startsWith('/assets/') || href.startsWith('/fonts/') || /^\/favicon(?:[-.].+)?$/.test(href)) continue
     const pathname = new URL(href, origin).pathname
     const normalized = pathname === '/' ? '/' : `${pathname.replace(/\/$/, '')}/`
     assert(routeSet.has(normalized), `${route}: enlace interno sin ruta pública (${href})`)
@@ -108,7 +108,7 @@ assert(llms.includes('## When to use NovaLine'), 'llms.txt no explica cuándo us
 assert(llms.includes('## How agents should use NovaLine'), 'llms.txt no incluye instrucciones para agentes')
 const llmsSections = llms.split(/^## /m).slice(1)
 for (const section of llmsSections) {
-  const contentLines = section.split('\n').slice(1).filter((line) => line.trim())
+  const contentLines = section.split('\n').slice(1).map((line) => line.trim()).filter(Boolean)
   assert(contentLines.every((line) => /^- \[[^\]]+\]\(https:\/\/[^)]+\)(?:: .+)?$/.test(line)), 'cada sección H2 de llms.txt debe ser una lista de enlaces Markdown')
 }
 for (const route of routes) {

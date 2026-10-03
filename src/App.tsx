@@ -1,6 +1,6 @@
-import { CSSProperties, KeyboardEvent as ReactKeyboardEvent, MouseEventHandler, ReactNode, TouchEvent, TransitionEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { CSSProperties, MouseEvent as ReactMouseEvent, MouseEventHandler, PointerEvent as ReactPointerEvent, ReactNode, TransitionEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { NAV_ITEMS, PHONE_DEMOS, PROCESS, PROJECTS, SERVICES, SITE, TEAM_MEMBERS, whatsappUrl } from './config'
-import { CASE_ROUTES, resolveRoute } from './routes'
+import { CASE_ROUTES, normalizePathname, PUBLIC_ROUTES, resolveRoute } from './routes'
 import { applySeoToDocument } from './seo'
 import { useGoogleAnalytics } from './analytics'
 
@@ -121,14 +121,47 @@ function Header({ aboutMode = false, onAboutBrandChange }: { aboutMode?: boolean
   }, [aboutMode, onAboutBrandChange])
 
   useEffect(() => {
+    const currentPath = normalizePathname(window.location.pathname)
+    const currentPage = NAV_ITEMS.find((item) => {
+      const destination = new URL(item.href, window.location.origin)
+      return !destination.hash && normalizePathname(destination.pathname) === currentPath
+    })
+
+    if (currentPath !== '/') {
+      setActive(currentPage?.sectionId ?? '')
+      return
+    }
+
+    const itemsBySection = new Map(NAV_ITEMS.map((item) => [item.sectionId, item]))
     const sections = NAV_ITEMS.map((item) => document.getElementById(item.sectionId)).filter(Boolean) as Element[]
     const observer = new IntersectionObserver(
-      (entries) => entries.forEach((entry) => entry.isIntersecting && setActive(entry.target.id)),
+      (entries) => entries.forEach((entry) => {
+        if (!entry.isIntersecting) return
+        const item = itemsBySection.get(entry.target.id)
+        if (!item) return
+        const destination = new URL(item.href, window.location.origin)
+        const isHomeSection = item.sectionId === 'inicio' || (Boolean(destination.hash) && normalizePathname(destination.pathname) === currentPath)
+        setActive(isHomeSection ? item.sectionId : '')
+      }),
       { rootMargin: '-35% 0px -55% 0px' },
     )
     sections.forEach((section) => observer.observe(section))
     return () => observer.disconnect()
   }, [])
+
+  const onNavClick = (event: ReactMouseEvent<HTMLAnchorElement>, item: typeof NAV_ITEMS[number]) => {
+    setOpen(false)
+    const destination = new URL(item.href, window.location.origin)
+    const samePageAnchor = Boolean(destination.hash) && normalizePathname(destination.pathname) === normalizePathname(window.location.pathname)
+    if (!samePageAnchor) return
+
+    const section = document.getElementById(item.sectionId)
+    if (!section) return
+
+    event.preventDefault()
+    window.history.pushState({}, '', `${window.location.pathname}${window.location.search}${destination.hash}`)
+    section.scrollIntoView?.({ behavior: 'smooth', block: 'start' })
+  }
 
   return (
     <header className={`header ${aboutMode ? 'header--about' : ''} ${scrolled ? 'header--scrolled' : ''} ${aboutMode && !aboutBrandVisible ? 'header--about-open' : ''} ${aboutMode && aboutBrandVisible ? 'header--brand-arrived' : ''}`}>
@@ -136,7 +169,7 @@ function Header({ aboutMode = false, onAboutBrandChange }: { aboutMode?: boolean
         <div className="header__brand-slot"><Brand /></div>
         <nav className={`nav ${open ? 'nav--open' : ''}`} aria-label="Navegación principal">
           {NAV_ITEMS.map((item) => (
-            <a key={item.href} className={active === item.sectionId ? 'is-active' : ''} href={item.href} onClick={() => setOpen(false)}>{item.label}</a>
+            <a key={item.href} className={active === item.sectionId ? 'is-active' : ''} href={item.href} onClick={(event) => onNavClick(event, item)}>{item.label}</a>
           ))}
           <a className="button button--small nav__mobile-cta" href={whatsappUrl()} target="_blank" rel="noreferrer" data-analytics-cta="quote_project"><WhatsAppIcon /> Cotizar proyecto</a>
         </nav>
@@ -253,9 +286,8 @@ function ProcessAnimationStage({ active, paused }: { active: boolean; paused: bo
   return (
     <div className="process-showcase">
       <div className="process-showcase__copy">
-        <span>Procesos que se pueden ver</span>
-        <h2>Haz que cada movimiento de tu empresa cobre vida.</h2>
-        <p>Diseñamos experiencias animadas para pedidos, inventario, entregas y cualquier flujo que necesites explicar o seguir.</p>
+        <h3>Procesos en movimiento.</h3>
+        <a className="text-link process-showcase__case-link" href={SERVICES[2].caseHref} aria-label={SERVICES[2].caseLabel}>Ver caso real <span className="text-link__arrow" aria-hidden="true">→</span></a>
       </div>
 
       <div className={`process-motion process-motion--${actor.tone} ${received ? 'is-received' : ''}`} key={cycle} aria-label={`Animación de un pedido de ${actor.name} que actualiza el avance de su proceso`} style={{ '--progress-from': `${progressFrom}%`, '--progress-to': `${progressTo}%` } as CSSProperties}>
@@ -290,101 +322,264 @@ function ProcessAnimationStage({ active, paused }: { active: boolean; paused: bo
   )
 }
 
-function Hero({ servicesMode = false }: { servicesMode?: boolean }) {
-  const [slide, setSlide] = useState(0)
-  const [demoIndex, setDemoIndex] = useState(0)
-  const [paused, setPaused] = useState(false)
-  const systemPause = useSystemPause<HTMLElement>()
-  const touchStart = useRef<number | null>(null)
+const HERO_VIDEO_URL = 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260505_101331_74f9b798-3f00-4e86-8a01-377aa16ffeaa.mp4'
+
+const SERVICE_RIBBON = [
+  { name: 'Software a medida', description: 'Plataformas creadas alrededor de tus procesos, roles y objetivos de negocio.', message: 'Hola, quiero conversar sobre software a la medida para mi empresa.' },
+  { name: 'CRM empresariales', description: 'Centralizamos clientes, seguimientos, ventas y decisiones en una operación conectada.', message: 'Hola, quiero conversar sobre un CRM empresarial para mi equipo.' },
+  { name: 'Aplicaciones web', description: 'Creamos aplicaciones claras, seguras y listas para crecer con tu empresa.', message: 'Hola, quiero conversar sobre el desarrollo de una aplicación web.' },
+  { name: 'Automatización', description: 'Conectamos tareas y datos para reducir trabajo manual y errores repetitivos.', message: 'Hola, quiero automatizar procesos de mi empresa.' },
+  { name: 'SEO local', description: 'Mejoramos tu presencia en búsquedas locales para acercarte a clientes de tu zona.', message: 'Hola, quiero mejorar el SEO local de mi negocio.' },
+  { name: 'Reseñas con NFC', description: 'Facilitamos que una buena experiencia se convierta en una reseña con un solo gesto.', message: 'Hola, quiero implementar tarjetas NFC para conseguir más reseñas.' },
+  { name: 'Procesos animados', description: 'Convertimos flujos complejos en experiencias visuales fáciles de explicar y seguir.', message: 'Hola, quiero visualizar un proceso con una experiencia animada.' },
+  { name: 'Soporte y evolución', description: 'Acompañamos el producto después del lanzamiento para mantenerlo y hacerlo evolucionar.', message: 'Hola, quiero conversar sobre soporte y evolución de software.' },
+]
+
+function ServiceRibbonIcon({ index }: { index: number }) {
+  const paths: ReactNode[] = [
+    <><path d="m8 9-3 3 3 3"/><path d="m16 9 3 3-3 3"/><path d="m14 5-4 14"/></>,
+    <><circle cx="9" cy="8" r="3"/><circle cx="17" cy="10" r="2"/><path d="M3.5 19c.4-3.2 2.2-5 5.5-5s5.1 1.8 5.5 5"/><path d="M14.5 15c2.9-.7 5.2.6 6 3.5"/></>,
+    <><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.7 5.6 3.7 9S14.5 18.4 12 21c-2.5-2.6-3.7-5.6-3.7-9S9.5 5.6 12 3Z"/></>,
+    <><rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/><path d="M10 7h3a4 4 0 0 1 4 4v3M14 17h-3a4 4 0 0 1-4-4v-3"/></>,
+    <><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.2 4.2"/><path d="M7.5 11.5 10 14l4.5-5"/></>,
+    <><path d="M6 8a6 6 0 0 1 0 8M10 5a10 10 0 0 1 0 14M14 2a14 14 0 0 1 0 20"/><circle cx="3" cy="12" r="1"/></>,
+    <><path d="M3 12h4l2.2-5 4.1 10 2.2-5H21"/><circle cx="12" cy="12" r="10"/></>,
+    <><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><circle cx="12" cy="12" r="5"/><path d="m5.6 5.6 2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></>,
+  ]
+  return <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[index]}</svg>
+}
+
+function normalizeServiceRibbonPosition(marquee: HTMLDivElement) {
+  const track = marquee.firstElementChild as HTMLElement | null
+  const groupWidth = (track?.scrollWidth ?? 0) / 3
+  if (!groupWidth) return
+
+  let nextPosition = marquee.scrollLeft
+  while (nextPosition < groupWidth) nextPosition += groupWidth
+  while (nextPosition >= groupWidth * 2) nextPosition -= groupWidth
+  if (nextPosition !== marquee.scrollLeft) marquee.scrollLeft = nextPosition
+}
+
+function HeroBackground({ paused }: { paused: boolean }) {
+  const stageRef = useRef<HTMLDivElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const glyphRef = useRef<HTMLSpanElement>(null)
 
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get('service') === 'seo') setSlide(1)
+    const video = videoRef.current
+    if (!video || navigator.userAgent.includes('jsdom')) return
+    if (paused) {
+      video.pause()
+    } else {
+      void video.play().catch(() => undefined)
+    }
+  }, [paused])
+
+  useEffect(() => {
+    const stage = stageRef.current
+    const video = videoRef.current
+    const glyph = glyphRef.current
+    if (!stage || !video || !glyph || navigator.userAgent.includes('jsdom')) return
+
+    const positionValue = (value: string | undefined, fallback: number) => {
+      if (!value) return fallback
+      if (value.endsWith('%')) return Number.parseFloat(value) / 100
+      if (value === 'left' || value === 'top') return 0
+      if (value === 'right' || value === 'bottom') return 1
+      return .5
+    }
+    const syncGlyph = () => {
+      const stageRect = stage.getBoundingClientRect()
+      const videoRect = video.getBoundingClientRect()
+      if (!stageRect.width || !stageRect.height || !videoRect.width || !videoRect.height) return
+
+      const sourceWidth = video.videoWidth || 1600
+      const sourceHeight = video.videoHeight || 900
+      const objectFit = getComputedStyle(video).objectFit
+      const scale = objectFit === 'contain'
+        ? Math.min(videoRect.width / sourceWidth, videoRect.height / sourceHeight)
+        : Math.max(videoRect.width / sourceWidth, videoRect.height / sourceHeight)
+      const renderedWidth = sourceWidth * scale
+      const renderedHeight = sourceHeight * scale
+      const [rawX, rawY] = getComputedStyle(video).objectPosition.split(/\s+/)
+      const objectX = positionValue(rawX, .5)
+      const objectY = positionValue(rawY, .5)
+      const contentLeft = videoRect.left - stageRect.left + (videoRect.width - renderedWidth) * objectX
+      const contentTop = videoRect.top - stageRect.top + (videoRect.height - renderedHeight) * objectY
+
+      glyph.style.left = `${contentLeft + renderedWidth * .657}px`
+      glyph.style.top = `${contentTop + renderedHeight * .541}px`
+      glyph.style.width = `${renderedWidth * .088}px`
+    }
+
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(syncGlyph)
+    observer?.observe(stage)
+    observer?.observe(video)
+    video.addEventListener('loadedmetadata', syncGlyph)
+    window.addEventListener('resize', syncGlyph)
+    const frame = window.requestAnimationFrame(syncGlyph)
+
+    return () => {
+      observer?.disconnect()
+      video.removeEventListener('loadedmetadata', syncGlyph)
+      window.removeEventListener('resize', syncGlyph)
+      window.cancelAnimationFrame(frame)
+    }
+  }, [])
+
+  return (
+    <div ref={stageRef} className="hero-background" aria-hidden="true">
+      <video ref={videoRef} className="hero-background__video" src={HERO_VIDEO_URL} autoPlay muted loop playsInline preload="auto" aria-hidden="true" suppressHydrationWarning/>
+      <span ref={glyphRef} className="hero-background__glyph"><BrandGlyph /></span>
+    </div>
+  )
+}
+
+function ServiceRibbon({ paused }: { paused: boolean }) {
+  const [selected, setSelected] = useState<number | null>(null)
+  const [interacting, setInteracting] = useState(false)
+  const marqueeRef = useRef<HTMLDivElement>(null)
+  const dragRef = useRef<{ pointerId: number; startX: number; startScroll: number; moved: boolean } | null>(null)
+  const suppressClickRef = useRef(false)
+  const releaseInteractionRef = useRef<number | null>(null)
+  const activeService = selected === null ? null : SERVICE_RIBBON[selected]
+
+  useEffect(() => () => {
+    if (releaseInteractionRef.current !== null) window.clearTimeout(releaseInteractionRef.current)
   }, [])
 
   useEffect(() => {
-    if (paused || systemPause.paused) return
-    const timer = window.setInterval(() => setSlide((value) => (value + 1) % 3), SITE.heroInterval)
-    return () => window.clearInterval(timer)
-  }, [paused, systemPause.paused])
+    const marquee = marqueeRef.current
+    if (!marquee || navigator.userAgent.includes('jsdom')) return
+
+    let frame = 0
+    let previousTime = performance.now()
+    const move = (time: number) => {
+      const elapsed = Math.min(time - previousTime, 64)
+      previousTime = time
+
+      if (!interacting) {
+        normalizeServiceRibbonPosition(marquee)
+        if (!paused && selected === null) {
+          const track = marquee.firstElementChild as HTMLElement | null
+          const groupWidth = (track?.scrollWidth ?? 0) / 3
+          if (groupWidth) {
+            marquee.scrollLeft += groupWidth * elapsed / 42000
+            normalizeServiceRibbonPosition(marquee)
+          }
+        }
+      }
+
+      frame = window.requestAnimationFrame(move)
+    }
+
+    frame = window.requestAnimationFrame(move)
+    return () => window.cancelAnimationFrame(frame)
+  }, [interacting, paused, selected])
 
   useEffect(() => {
-    if (paused || systemPause.paused) return
-    const timer = window.setInterval(() => setDemoIndex((value) => (value + 1) % PHONE_DEMOS.length), SITE.phoneInterval)
-    return () => window.clearInterval(timer)
-  }, [paused, systemPause.paused])
+    if (selected === null) return
 
-  const select = (index: number) => setSlide((index + 3) % 3)
-  const onTabKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
-    let nextSlide: number
-    if (event.key === 'ArrowRight') nextSlide = (slide + 1) % 3
-    else if (event.key === 'ArrowLeft') nextSlide = (slide + 2) % 3
-    else if (event.key === 'Home') nextSlide = 0
-    else if (event.key === 'End') nextSlide = 2
-    else return
-    event.preventDefault()
-    select(nextSlide)
-    window.requestAnimationFrame(() => document.getElementById(`hero-tab-${nextSlide}`)?.focus())
+    const dismiss = () => setSelected(null)
+    const timeout = window.setTimeout(dismiss, 10000)
+    window.addEventListener('scroll', dismiss, { passive: true })
+
+    return () => {
+      window.clearTimeout(timeout)
+      window.removeEventListener('scroll', dismiss)
+    }
+  }, [selected])
+
+  const onPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (releaseInteractionRef.current !== null) window.clearTimeout(releaseInteractionRef.current)
+    setInteracting(true)
+    if (event.pointerType !== 'mouse' || event.button !== 0) return
+    dragRef.current = { pointerId: event.pointerId, startX: event.clientX, startScroll: event.currentTarget.scrollLeft, moved: false }
   }
-  const onTouchStart = (event: TouchEvent) => { touchStart.current = event.touches[0].clientX }
-  const onTouchEnd = (event: TouchEvent) => {
-    if (touchStart.current === null) return
-    const delta = event.changedTouches[0].clientX - touchStart.current
-    if (Math.abs(delta) > 45) select(slide + (delta < 0 ? 1 : -1))
-    touchStart.current = null
+  const onPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const drag = dragRef.current
+    if (!drag || drag.pointerId !== event.pointerId) return
+    const distance = event.clientX - drag.startX
+    if (Math.abs(distance) > 5 && !drag.moved) {
+      drag.moved = true
+      event.currentTarget.setPointerCapture?.(event.pointerId)
+    }
+    event.currentTarget.scrollLeft = drag.startScroll - distance
+  }
+  const finishInteraction = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const drag = dragRef.current
+    if (drag?.pointerId === event.pointerId) {
+      suppressClickRef.current = drag.moved
+      dragRef.current = null
+      event.currentTarget.releasePointerCapture?.(event.pointerId)
+    }
+    normalizeServiceRibbonPosition(event.currentTarget)
+    releaseInteractionRef.current = window.setTimeout(() => {
+      setInteracting(false)
+      releaseInteractionRef.current = null
+    }, 0)
+  }
+  const onMarqueeClick = (event: ReactMouseEvent<HTMLDivElement>) => {
+    if (!suppressClickRef.current) return
+    suppressClickRef.current = false
+    event.preventDefault()
+    event.stopPropagation()
   }
 
   return (
-    <section ref={systemPause.ref} id="inicio" className="hero" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onFocus={() => setPaused(true)} onBlur={() => setPaused(false)} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-      <div className="hero__wash"/>
-      <div className="shell">
-        <div className="hero__rail">
-          <div className="hero__tabs" role="tablist" aria-label="Soluciones destacadas" onKeyDown={onTabKeyDown}>
-            <button id="hero-tab-0" role="tab" aria-label="Software a medida" aria-controls="hero-panel-0" aria-selected={slide === 0} tabIndex={slide === 0 ? 0 : -1} className={slide === 0 ? 'is-active' : ''} onClick={() => select(0)}><Icon name="code"/><span className="hero-tab__wide">Software a medida</span><span className="hero-tab__short">Software</span></button>
-            <button id="hero-tab-1" role="tab" aria-label="SEO y reseñas NFC" aria-controls="hero-panel-1" aria-selected={slide === 1} tabIndex={slide === 1 ? 0 : -1} className={slide === 1 ? 'is-active' : ''} onClick={() => select(1)}><Icon name="search"/><span className="hero-tab__wide">SEO + reseñas NFC</span><span className="hero-tab__short">SEO + NFC</span></button>
-            <button id="hero-tab-2" role="tab" aria-label="Procesos animados" aria-controls="hero-panel-2" aria-selected={slide === 2} tabIndex={slide === 2 ? 0 : -1} className={slide === 2 ? 'is-active' : ''} onClick={() => select(2)}><Icon name="pulse"/><span className="hero-tab__wide">Procesos animados</span><span className="hero-tab__short">Animación</span></button>
-          </div>
-          <span className="hero__count">0{slide + 1} / 03</span>
-          <div className="hero__arrows">
-            <button type="button" aria-label="Ver propuesta anterior" onClick={() => select(slide - 1)}><Icon name="chevronLeft"/></button>
-            <button type="button" aria-label="Ver propuesta siguiente" onClick={() => select(slide + 1)}><Icon name="chevronRight"/></button>
-          </div>
-        </div>
-
-        <div className="hero__viewport">
-          <section id="hero-panel-0" role="tabpanel" aria-labelledby="hero-tab-0" className={`hero-slide ${slide === 0 ? 'is-active' : ''}`} aria-hidden={slide !== 0} inert={slide !== 0}>
-            <div className="hero-copy">
-              <h1>{servicesMode ? 'Servicios de software diseñados alrededor de tu empresa.' : 'Software que entiende cómo funciona tu empresa.'}</h1>
-              <p>{servicesMode ? 'Creamos software empresarial, aplicaciones web y automatizaciones adaptadas a procesos reales, con acompañamiento técnico para seguir evolucionando.' : 'Desarrollamos software a la medida para empresas en Colombia: aplicaciones web y sistemas que ordenan la operación, automatizan procesos y facilitan el crecimiento.'}</p>
-              <div className="hero-copy__actions">
-                <a className="button" href={whatsappUrl()} target="_blank" rel="noreferrer" data-analytics-cta="discuss_project">Cuéntanos qué necesitas <Icon name="arrow"/></a>
-                <a className="text-link" href="/#proyectos">Ver proyectos <span className="text-link__arrow" aria-hidden="true">↓</span></a>
-              </div>
-              <div className="hero-proof"><span><Icon name="check"/> Alcance claro</span><span><Icon name="check"/> Entregas por etapas</span><span><Icon name="check"/> Soporte cercano</span></div>
+    <section className={`service-ribbon ${paused ? 'is-paused' : ''} ${selected !== null ? 'has-detail' : ''} ${interacting ? 'is-interacting' : ''}`} aria-label="Servicios destacados de NovaLine">
+      <h2 className="sr-only">Servicios de NovaLine</h2>
+      <div ref={marqueeRef} className="service-ribbon__marquee" aria-label="Desliza para explorar los servicios" onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={finishInteraction} onPointerCancel={finishInteraction} onClickCapture={onMarqueeClick}>
+        <div className="service-ribbon__track">
+          {[0, 1, 2].map((copy) => (
+            <div className="service-ribbon__group" aria-hidden={copy !== 1} key={copy}>
+              {SERVICE_RIBBON.map((service, index) => (
+                <button className={selected === index ? 'is-active' : ''} type="button" onClick={() => setSelected((current) => current === index ? null : index)} tabIndex={copy === 1 ? 0 : -1} aria-expanded={copy === 1 ? selected === index : undefined} key={`${copy}-${service.name}`}>
+                  <ServiceRibbonIcon index={index}/><span>{service.name}</span>
+                </button>
+              ))}
             </div>
-            <PhoneStage demoIndex={demoIndex}/>
-          </section>
-
-          <section id="hero-panel-1" role="tabpanel" aria-labelledby="hero-tab-1" className={`hero-slide ${slide === 1 ? 'is-active' : ''}`} aria-hidden={slide !== 1} inert={slide !== 1}>
-            <div className="hero-copy">
-              <h2>Convierte una buena experiencia en una reseña fácil de compartir.</h2>
-              <p>Posicionamos tu negocio en búsquedas locales y conectamos cada atención con una tarjeta NFC: el cliente acerca su celular y llega directo a dejar su opinión.</p>
-              <div className="hero-copy__actions">
-                <a className="button" href={whatsappUrl('Hola, quiero mejorar la visibilidad local de mi negocio con SEO y tarjetas NFC.')} target="_blank" rel="noreferrer" data-analytics-cta="get_more_reviews">Quiero más reseñas <Icon name="arrow"/></a>
-                <span className="rating"><b>5.0</b> ★★★★★</span>
-              </div>
-              <div className="hero-proof"><span><Icon name="check"/> Perfil optimizado</span><span><Icon name="check"/> Acceso directo a la reseña</span></div>
-            </div>
-            <NfcStage active={slide === 1} />
-          </section>
-
-          <section id="hero-panel-2" role="tabpanel" aria-labelledby="hero-tab-2" className={`hero-slide hero-slide--process ${slide === 2 ? 'is-active' : ''}`} aria-hidden={slide !== 2} inert={slide !== 2}>
-            <ProcessAnimationStage active={slide === 2} paused={systemPause.paused}/>
-          </section>
+          ))}
         </div>
-
-        <div className="hero__progress" aria-hidden="true"><i className={slide === 0 ? 'is-active' : ''}/><i className={slide === 1 ? 'is-active' : ''}/><i className={slide === 2 ? 'is-active' : ''}/></div>
       </div>
+      {activeService && (
+        <div className="service-ribbon__detail" aria-live="polite">
+          <div><strong>{activeService.name}</strong><span>{activeService.description}</span></div>
+          <a href={whatsappUrl(activeService.message)} target="_blank" rel="noreferrer" data-analytics-cta={`service_ribbon_${selected}`}>Consultar por WhatsApp <WhatsAppIcon size={18}/></a>
+        </div>
+      )}
     </section>
+  )
+}
+
+function Hero() {
+  const [manuallyPaused, setManuallyPaused] = useState(false)
+  const systemPause = useSystemPause<HTMLElement>()
+  const animationsPaused = manuallyPaused || systemPause.paused
+
+  return (
+    <>
+      <section ref={systemPause.ref} id="inicio" className="hero hero--reference">
+        <HeroBackground paused={animationsPaused}/>
+        <div className="shell hero-reference__content">
+          <div className="hero-copy hero-reference__copy">
+            <span className="hero-reference__eyebrow">Software a la medida para empresas</span>
+            <h1>Software que entiende cómo funciona tu empresa.</h1>
+            <p>Desarrollamos software a la medida para empresas en Colombia: aplicaciones web y sistemas que ordenan la operación, automatizan procesos y facilitan el crecimiento.</p>
+            <div className="hero-copy__actions">
+              <a className="button" href={whatsappUrl()} target="_blank" rel="noreferrer" data-analytics-cta="discuss_project">Cuéntanos qué necesitas <Icon name="arrow"/></a>
+              <a className="text-link" href="/#proyectos">Ver proyectos <span className="text-link__arrow" aria-hidden="true">↓</span></a>
+            </div>
+            <div className="hero-proof"><span><Icon name="check"/> Alcance claro</span><span><Icon name="check"/> Entregas por etapas</span><span><Icon name="check"/> Soporte cercano</span></div>
+          </div>
+          <button className="hero-motion-toggle" type="button" aria-pressed={manuallyPaused} aria-label={manuallyPaused ? 'Reanudar animaciones' : 'Pausar animaciones'} title={manuallyPaused ? 'Reanudar animaciones' : 'Pausar animaciones'} onClick={() => setManuallyPaused((value) => !value)}>
+            {manuallyPaused ? <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 7 8 5-8 5V7Z"/></svg> : <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M8 7v10M16 7v10"/></svg>}
+            <span className="sr-only">{manuallyPaused ? 'Reanudar animaciones' : 'Pausar animaciones'}</span>
+          </button>
+        </div>
+      </section>
+      <ServiceRibbon paused={manuallyPaused || systemPause.paused}/>
+    </>
   )
 }
 
@@ -405,29 +600,25 @@ function ProcessSection() {
   )
 }
 
-function ServicesSection({ detailed = false }: { detailed?: boolean }) {
+function ServicesSection() {
   return (
-    <section id="servicios" className="section services-section">
+    <section id="servicios" className="section services-section" aria-label="Servicios de desarrollo de NovaLine">
       <div className="shell">
-        <SectionIntro
-          marker="Lo que hacemos"
-          title={detailed ? 'Servicios de desarrollo conectados con la operación real.' : 'Tecnología útil, diseñada alrededor del trabajo real.'}
-          text={detailed ? 'Diseñamos soluciones de software empresarial para organizar procesos, crear experiencias web claras y acompañar la evolución de cada producto.' : undefined}
-        />
+        <SectionIntro marker="Lo que hacemos" title="Tecnología útil, diseñada alrededor del trabajo real." />
         <div className="services-grid">
           {SERVICES.map((service, index) => (
             <article className={`service-card service-card--${index + 1}`} key={service.title}>
               <div className="service-card__icon"><Icon name={service.icon as IconName} size={25}/></div>
               <span className="service-card__index">0{index + 1}</span>
-              <h3>{service.title}</h3><p>{detailed ? service.text : service.summary}</p>
+              <h3>{service.title}</h3>
+              <p>{service.summary}</p>
               <div className="service-card__links">
-                {detailed && <a className="service-card__case" href={service.caseHref}>{service.caseLabel} <Icon name="arrow"/></a>}
                 <a href={whatsappUrl(`Hola, ${service.link.toLowerCase()}.`)} target="_blank" rel="noreferrer">{service.link} <Icon name="arrow"/></a>
               </div>
             </article>
           ))}
         </div>
-        {!detailed && <a className="section-link" href="/servicios/">Conocer nuestros servicios de desarrollo <Icon name="arrow"/></a>}
+        <a className="section-link" href="/servicios/">Conocer nuestros servicios de desarrollo <Icon name="arrow"/></a>
       </div>
     </section>
   )
@@ -1441,7 +1632,120 @@ function Footer() {
 }
 
 function ServicesPage() {
-  return <><Header/><main><Hero servicesMode/><ServicesSection detailed/><ContactSection dark/></main><Footer/></>
+  const [demoIndex, setDemoIndex] = useState(0)
+  const softwarePause = useSystemPause<HTMLElement>()
+  const experiencePause = useSystemPause<HTMLElement>()
+  const automationPause = useSystemPause<HTMLElement>()
+
+  useEffect(() => {
+    window.scrollTo({ top: 0 })
+  }, [])
+
+  useEffect(() => {
+    if (softwarePause.paused) return
+    const timer = window.setInterval(() => setDemoIndex((value) => (value + 1) % PHONE_DEMOS.length), SITE.phoneInterval)
+    return () => window.clearInterval(timer)
+  }, [softwarePause.paused])
+
+  return (
+    <div className="services-page">
+      <Header/>
+      <main id="servicios">
+        <section className="services-page__hero">
+          <div className="shell services-page__hero-grid">
+            <div className="services-page__hero-copy">
+              <span className="services-page__eyebrow">Servicios de desarrollo</span>
+              <h1>La tecnología correcta se siente parte de tu empresa.</h1>
+              <p>Diseñamos productos digitales alrededor de procesos reales: herramientas para operar mejor, experiencias que conectan y automatizaciones que liberan tiempo.</p>
+              <a className="button" href="#software-a-medida">Explorar cómo podemos ayudarte <Icon name="arrow"/></a>
+            </div>
+            <div className="services-page__map" aria-label="Tres áreas de servicio">
+              {SERVICES.map((service, index) => (
+                <a href={['#software-a-medida', '#experiencias-web', '#automatizacion'][index]} key={service.title}>
+                  <span>0{index + 1}</span>
+                  <strong>{service.title}</strong>
+                  <Icon name="arrow" size={17}/>
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section ref={softwarePause.ref} id="software-a-medida" className={`service-story service-story--software ${softwarePause.paused ? 'is-paused' : ''}`}>
+          <div className="shell service-story__grid">
+            <div className="service-story__copy">
+              <span className="service-story__number">01 · Software a la medida</span>
+              <h2>Una plataforma clara para conectar toda tu operación.</h2>
+              <p>Construimos CRM, ERP y herramientas internas adaptadas a tus roles, reglas e información. No obligamos a tu empresa a trabajar como una plantilla.</p>
+              <ul className="service-story__benefits">
+                <li><Icon name="check"/> Flujos y permisos según cada equipo</li>
+                <li><Icon name="check"/> Información centralizada y trazable</li>
+                <li><Icon name="check"/> Entregas funcionales por etapas</li>
+              </ul>
+              <div className="service-story__actions">
+                <a className="button" href={whatsappUrl('Hola, quiero conversar sobre software a la medida para mi empresa.')} target="_blank" rel="noreferrer" data-analytics-cta="services_page_custom_software">Quiero una solución <Icon name="arrow"/></a>
+                <a className="text-link" href={SERVICES[0].caseHref} aria-label={SERVICES[0].caseLabel}>Ver caso real <span className="text-link__arrow" aria-hidden="true">→</span></a>
+              </div>
+            </div>
+            <div className="service-story__visual service-story__visual--phones" aria-label="Interfaces de software adaptadas a distintos procesos">
+              <PhoneStage demoIndex={demoIndex}/>
+            </div>
+          </div>
+        </section>
+
+        <section ref={experiencePause.ref} id="experiencias-web" className={`service-story service-story--experience ${experiencePause.paused ? 'is-paused' : ''}`}>
+          <div className="shell service-story__grid service-story__grid--reverse">
+            <div className="service-story__copy">
+              <span className="service-story__number">02 · Experiencias web</span>
+              <h2>Menos pasos entre una buena experiencia y una acción real.</h2>
+              <p>Creamos portales y aplicaciones responsive que se entienden en cualquier pantalla. También conectamos presencia local, reseñas y tecnología NFC para reducir fricción.</p>
+              <ul className="service-story__benefits">
+                <li><Icon name="check"/> Experiencias responsive y accesibles</li>
+                <li><Icon name="check"/> SEO local conectado con el recorrido</li>
+                <li><Icon name="check"/> Acciones directas mediante NFC</li>
+              </ul>
+              <div className="service-story__actions">
+                <a className="button" href={whatsappUrl('Hola, quiero crear una experiencia web clara y mejorar la visibilidad local de mi negocio.')} target="_blank" rel="noreferrer" data-analytics-cta="services_page_web_experience">Hablemos de la experiencia <Icon name="arrow"/></a>
+                <a className="text-link" href={SERVICES[1].caseHref} aria-label={SERVICES[1].caseLabel}>Ver caso real <span className="text-link__arrow" aria-hidden="true">→</span></a>
+              </div>
+            </div>
+            <div className="service-story__visual service-story__visual--nfc" aria-label="Tarjeta NFC para facilitar reseñas de Google">
+              <NfcStage active={!experiencePause.paused}/>
+              <div className="service-story__signal" aria-hidden="true"><span>1 toque</span><strong>Una acción clara</strong></div>
+            </div>
+          </div>
+        </section>
+
+        <section ref={automationPause.ref} id="automatizacion" className={`service-story service-story--automation ${automationPause.paused ? 'is-paused' : ''}`}>
+          <div className="shell">
+            <div className="service-story__automation-heading">
+              <div className="service-story__copy">
+                <span className="service-story__number">03 · Automatización y soporte</span>
+                <h2>Procesos que avanzan sin perder contexto.</h2>
+              </div>
+              <div className="service-story__automation-intro">
+                <p>Conectamos tareas, documentos y estados para reducir trabajo manual. Después del lanzamiento seguimos cerca para mantener y evolucionar cada solución.</p>
+                <div className="service-story__actions">
+                  <a className="button" href={whatsappUrl('Hola, quiero automatizar procesos y recibir acompañamiento técnico para mi empresa.')} target="_blank" rel="noreferrer" data-analytics-cta="services_page_automation">Automatizar un proceso <Icon name="arrow"/></a>
+                </div>
+              </div>
+            </div>
+            <div className="service-story__process-visual">
+              <ProcessAnimationStage active={!automationPause.paused} paused={automationPause.paused}/>
+            </div>
+          </div>
+        </section>
+
+        <section className="services-page__closing">
+          <div className="shell services-page__closing-inner">
+            <div><span>Una solución empieza por entender</span><h2>Cuéntanos qué necesita funcionar mejor.</h2></div>
+            <a className="button" href={whatsappUrl()} target="_blank" rel="noreferrer" data-analytics-cta="services_page_closing">Conversemos sobre tu proyecto <Icon name="arrow"/></a>
+          </div>
+        </section>
+      </main>
+      <Footer/>
+    </div>
+  )
 }
 
 export default function App({ initialPath }: { initialPath?: string }) {
@@ -1450,20 +1754,46 @@ export default function App({ initialPath }: { initialPath?: string }) {
   const [pathname, setPathname] = useState(() => initialPath ?? (typeof window === 'undefined' ? '/' : window.location.pathname))
   const route = resolveRoute(pathname)
 
+  const navigate = useCallback((href: string) => {
+    const url = new URL(href, window.location.origin)
+    window.history.pushState({}, '', `${url.pathname}${url.search}${url.hash}`)
+    setPathname(url.pathname)
+
+    if (url.hash) {
+      window.requestAnimationFrame(() => document.getElementById(url.hash.slice(1))?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+    } else {
+      window.scrollTo({ top: 0, behavior: 'auto' })
+    }
+  }, [])
+
   useEffect(() => {
     const syncRoute = () => setPathname(window.location.pathname)
     window.addEventListener('popstate', syncRoute)
     return () => window.removeEventListener('popstate', syncRoute)
   }, [])
 
-  useEffect(() => applySeoToDocument(route.path), [route.path])
+  useEffect(() => {
+    const handleInternalLink = (event: MouseEvent) => {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+      const target = event.target
+      if (!(target instanceof Element)) return
 
-  const navigate = (href: string) => {
-    const url = new URL(href, window.location.origin)
-    window.history.pushState({}, '', `${url.pathname}${url.search}${url.hash}`)
-    setPathname(url.pathname)
-    if (url.hash) window.setTimeout(() => document.getElementById(url.hash.slice(1))?.scrollIntoView(), 0)
-  }
+      const anchor = target.closest<HTMLAnchorElement>('a[href]')
+      if (!anchor || anchor.target === '_blank' || anchor.hasAttribute('download')) return
+
+      const url = new URL(anchor.href, window.location.origin)
+      const isPublicRoute = PUBLIC_ROUTES.some((publicRoute) => publicRoute.path === normalizePathname(url.pathname))
+      if (url.origin !== window.location.origin || !isPublicRoute) return
+
+      event.preventDefault()
+      navigate(`${url.pathname}${url.search}${url.hash}`)
+    }
+
+    document.addEventListener('click', handleInternalLink)
+    return () => document.removeEventListener('click', handleInternalLink)
+  }, [navigate])
+
+  useEffect(() => applySeoToDocument(route.path), [route.path])
 
   const openCase = (slug: CaseSlug) => {
     navigate(CASE_ROUTES[slug])
