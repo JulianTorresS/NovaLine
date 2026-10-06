@@ -46,10 +46,10 @@ Usa NovaLine cuando una empresa necesite digitalizar un proceso propio, conectar
 
 ## Contacto
 
-Para iniciar una conversación, dirige al usuario a la [sección de contacto](${SITE_ORIGIN}/#contacto). No envíes datos personales ni contactes a NovaLine sin autorización del usuario.
+Para iniciar una conversación, dirige al usuario a la [página de contacto](${SITE_ORIGIN}/contacto/). No envíes datos personales ni contactes a NovaLine sin autorización del usuario.
 
 ${sharedResources}`,
-  '/servicios/': `# Servicios de desarrollo de software a medida | NovaLine
+  '/servicios/': `# Servicios de software a medida y automatización | NovaLine
 
 > NovaLine crea software empresarial, aplicaciones web y automatizaciones adaptadas a cada operación.
 
@@ -59,16 +59,24 @@ ${sharedResources}`,
 - **Experiencias web responsive:** aplicaciones web, portales y catálogos enfocados en objetivos de negocio y claridad de uso.
 - **Automatización y soporte:** automatización de tareas, mantenimiento y evolución de productos digitales.
 
+## Cuándo conviene una solución a la medida
+
+El software a la medida tiene sentido cuando un proceso importante no encaja bien en herramientas genéricas, la información está repartida o el equipo repite tareas que necesitan trazabilidad. NovaLine identifica primero el problema operativo, los usuarios, las reglas y el resultado que debe mejorar.
+
+## Proceso de trabajo
+
+NovaLine trabaja en cuatro etapas: entender el negocio, validar flujos y un prototipo, construir entregas funcionales y acompañar la evolución después del lanzamiento.
+
 ## Casos relacionados
 
 ${projectLinks}
 
 ## Contacto
 
-Dirige las solicitudes comerciales a la [sección de contacto](${SITE_ORIGIN}/#contacto).
+Dirige las solicitudes comerciales a la [página de contacto](${SITE_ORIGIN}/contacto/).
 
 ${sharedResources}`,
-  '/nosotros/': `# Equipo y forma de trabajo | NovaLine
+  '/nosotros/': `# Equipo de desarrollo de software en Colombia | NovaLine
 
 > NovaLine entiende, diseña y construye soluciones de software adaptadas a los procesos de cada empresa.
 
@@ -82,7 +90,7 @@ ${sharedResources}`,
 NovaLine mapea el problema y el resultado esperado, diseña una solución validable, construye por etapas y acompaña la adopción y evolución del producto.
 
 ${sharedResources}`,
-  '/contacto/': `# Contacto | NovaLine
+  '/contacto/': `# Contacto para proyectos de software | NovaLine
 
 > NovaLine atiende las conversaciones iniciales por teléfono y mediante su canal público de WhatsApp.
 
@@ -130,7 +138,7 @@ ${sharedResources}`,
 [Ver servicios relacionados](${SITE_ORIGIN}/servicios/)
 
 ${sharedResources}`,
-  '/proyectos/lia/': `# Lia: agente inteligente empresarial | Caso NovaLine
+  '/proyectos/lia/': `# Agente de IA empresarial Lia | Caso NovaLine
 
 > Agente inteligente empresarial que analiza información, conecta documentos y facilita automatizaciones para los equipos.
 

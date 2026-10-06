@@ -36,18 +36,24 @@ describe('SEO estructural', () => {
     expect(new Set(PUBLIC_ROUTES.map((route) => route.description)).size).toBe(PUBLIC_ROUTES.length)
   })
 
-  it('genera Organization, WebSite, WebPage y Service sin datos inventados', () => {
+  it('genera Organization, WebSite, WebPage, BreadcrumbList y Service sin datos inventados', () => {
     const jsonLd = getJsonLd('/servicios/')
     const graph = jsonLd['@graph'] as Array<Record<string, unknown>>
     expect(graph.map((node) => node['@type'])).toEqual([
       'Organization',
       'WebSite',
       'WebPage',
+      'BreadcrumbList',
       'Service',
       'Service',
       'Service',
     ])
     const organization = graph.find((node) => node['@type'] === 'Organization')
+    expect(organization?.logo).toMatchObject({
+      url: 'https://novalinesoftware.com/assets/brand/novaline-logo-512.png',
+      width: 512,
+      height: 512,
+    })
     expect(organization?.contactPoint).toEqual({
       '@type': 'ContactPoint',
       telephone: '+573228968494',
@@ -59,11 +65,14 @@ describe('SEO estructural', () => {
     expect(() => JSON.parse(JSON.stringify(jsonLd))).not.toThrow()
   })
 
-  it('publica ContactPage para Contacto y WebPage para Privacidad', () => {
+  it('publica tipos de página, entidad principal y breadcrumbs coherentes', () => {
     const contactGraph = getJsonLd('/contacto/')['@graph'] as Array<Record<string, unknown>>
     const privacyGraph = getJsonLd('/privacidad/')['@graph'] as Array<Record<string, unknown>>
-    expect(contactGraph.map((node) => node['@type'])).toEqual(['Organization', 'WebSite', 'ContactPage'])
-    expect(privacyGraph.map((node) => node['@type'])).toEqual(['Organization', 'WebSite', 'WebPage'])
+    const aboutGraph = getJsonLd('/nosotros/')['@graph'] as Array<Record<string, unknown>>
+    expect(contactGraph.map((node) => node['@type'])).toEqual(['Organization', 'WebSite', 'ContactPage', 'BreadcrumbList'])
+    expect(privacyGraph.map((node) => node['@type'])).toEqual(['Organization', 'WebSite', 'WebPage', 'BreadcrumbList'])
+    expect(aboutGraph[2]?.['@type']).toBe('AboutPage')
+    expect(privacyGraph[2]?.dateModified).toBe('2026-09-16')
     expect(JSON.stringify([contactGraph, privacyGraph])).not.toMatch(/sameAs|address|email|rating|price/i)
   })
 

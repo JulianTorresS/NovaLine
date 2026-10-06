@@ -41,6 +41,8 @@ for (const route of routes) {
   const html = await readFile(file, 'utf8')
   allHtml.push(html)
 
+  assert(html.includes('<html lang="es-CO">'), `${route}: falta el idioma regional es-CO`)
+
   const title = attribute(html, /<title>([^<]+)<\/title>/)
   const description = attribute(html, /<meta name="description" content="([^"]+)"/)
   const canonical = attribute(html, /<link rel="canonical" href="([^"]+)"/)
@@ -78,10 +80,16 @@ for (const route of routes) {
 
   const jsonLd = attribute(html, /<script id="novaline-jsonld" type="application\/ld\+json">([\s\S]*?)<\/script>/)
   assert(jsonLd, `${route}: falta JSON-LD`)
-  JSON.parse(jsonLd)
+  const graph = JSON.parse(jsonLd)['@graph']
+  const organization = graph.find((node) => node['@type'] === 'Organization')
+  assert(organization?.logo?.url === `${origin}/assets/brand/novaline-logo-512.png`, `${route}: logo de Organization incorrecto`)
+  assert(organization?.logo?.width >= 112 && organization?.logo?.height >= 112, `${route}: logo de Organization demasiado pequeño`)
+  if (route !== '/') assert(graph.some((node) => node['@type'] === 'BreadcrumbList'), `${route}: falta BreadcrumbList`)
 
   for (const tag of html.match(/<img\b[^>]*>/g) ?? []) {
     assert(/\bwidth="\d+"/.test(tag) && /\bheight="\d+"/.test(tag), `${route}: imagen sin width/height`)
+    assert(/\bsrc="[^"]+"/.test(tag), `${route}: imagen sin src prerenderizado`)
+    assert(/\balt="[^"]*"/.test(tag), `${route}: imagen sin alt explícito`)
   }
 
   for (const href of [...html.matchAll(/href="([^"]+)"/g)].map((match) => match[1])) {
@@ -95,12 +103,21 @@ for (const route of routes) {
 const sitemap = await readFile('public/sitemap.xml', 'utf8')
 const sitemapUrls = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1])
 assert(JSON.stringify(sitemapUrls) === JSON.stringify(routes.map((route) => `${origin}${route}`)), 'El sitemap no coincide con las rutas públicas')
+assert((sitemap.match(/<lastmod>2026-10-05<\/lastmod>/g) ?? []).length === routes.length, 'El sitemap no incluye lastmod preciso para todas las rutas actualizadas')
 
 const robots = await readFile('public/robots.txt', 'utf8')
 assert(robots.includes(`Sitemap: ${origin}/sitemap.xml`), 'robots.txt no apunta al sitemap canónico')
 
 const vercelConfig = JSON.parse(await readFile('vercel.json', 'utf8'))
+assert(vercelConfig.trailingSlash === true, 'falta consolidar rutas con barra final')
 assert(vercelConfig.redirects?.some((redirect) => redirect.source === '/about' && redirect.destination === '/nosotros/' && redirect.permanent === true), 'falta la redirección permanente /about → /nosotros/')
+assert(vercelConfig.redirects?.some((redirect) => redirect.has?.some((condition) => condition.type === 'host' && condition.value === 'www.novalinesoftware.com') && redirect.destination.startsWith(origin)), 'falta consolidar www hacia el host canónico')
+const securityHeaders = new Map(vercelConfig.headers?.flatMap((rule) => rule.headers.map((header) => [header.key.toLowerCase(), header.value])) ?? [])
+for (const requiredHeader of ['x-content-type-options', 'x-frame-options', 'referrer-policy', 'permissions-policy']) {
+  assert(securityHeaders.has(requiredHeader), `falta la cabecera ${requiredHeader}`)
+}
+assert(vercelConfig.headers?.some((rule) => rule.source.includes('index-') && rule.headers.some((header) => header.key === 'Cache-Control' && header.value.includes('immutable'))), 'faltan cabeceras de caché para JS/CSS versionados')
+assert(vercelConfig.headers?.some((rule) => rule.source.startsWith('/fonts/') && rule.headers.some((header) => header.key === 'Cache-Control' && header.value.includes('immutable'))), 'faltan cabeceras de caché para la fuente')
 
 const llms = await readFile('public/llms.txt', 'utf8')
 assert(llms.startsWith('# NovaLine'), 'llms.txt debe comenzar con el nombre de la entidad')

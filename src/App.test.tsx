@@ -27,10 +27,10 @@ describe('NovaLine landing', () => {
     expect(servicesLink).toHaveTextContent('Servicios')
     fireEvent.click(servicesLink)
     expect(window.location.pathname).toBe('/servicios/')
-    expect(screen.getByRole('heading', { level: 1, name: /La tecnología correcta se siente parte de tu empresa/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: /Servicios de software a la medida para operar mejor/i })).toBeInTheDocument()
   })
 
-  it('marca Servicios solamente dentro de su página independiente', () => {
+  it('agrupa Servicios y Nosotros como páginas independientes', () => {
     window.history.replaceState({}, '', '/servicios/')
     const { unmount } = render(<App initialPath="/servicios/" />)
     const servicesPageLink = screen.getByRole('navigation', { name: 'Navegación principal' }).querySelector('a[href="/servicios/"]')
@@ -39,15 +39,22 @@ describe('NovaLine landing', () => {
     unmount()
     window.history.replaceState({}, '', '/')
     render(<App initialPath="/" />)
-    const servicesHomeLink = screen.getByRole('navigation', { name: 'Navegación principal' }).querySelector('a[href="/servicios/"]')
+    const homeNavigation = screen.getByRole('navigation', { name: 'Navegación principal' })
+    const homeLinks = Array.from(homeNavigation.querySelectorAll<HTMLAnchorElement>('a:not(.button)'))
+    const servicesHomeLink = homeNavigation.querySelector('a[href="/servicios/"]')
+    const aboutHomeLink = homeNavigation.querySelector('a[href="/nosotros/"]')
     expect(servicesHomeLink).not.toHaveClass('is-active')
+    expect(aboutHomeLink).not.toHaveClass('is-active')
+    expect(servicesHomeLink).toHaveClass('nav__page-link')
+    expect(aboutHomeLink).toHaveClass('nav__page-link')
+    expect(homeLinks.slice(-2).map((link) => link.textContent)).toEqual(['Servicios', 'Nosotros'])
   })
 
   it('presenta un hero único y conserva el bloque compacto de tres servicios', () => {
     window.history.replaceState({}, '', '/')
     const { container } = render(<App />)
     expect(container.querySelectorAll('#inicio h1')).toHaveLength(1)
-    expect(screen.getByRole('heading', { level: 1, name: /Software que entiende cómo funciona tu empresa/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: /Software a la medida que entiende cómo funciona tu empresa/i })).toBeInTheDocument()
     expect(container.querySelector('#inicio [role="tab"]')).not.toBeInTheDocument()
     expect(container.querySelector('.hero__count')).not.toBeInTheDocument()
 
@@ -68,6 +75,9 @@ describe('NovaLine landing', () => {
     expect(video).toHaveAttribute('autoplay')
     expect(video).toHaveAttribute('loop')
     expect(video).toHaveAttribute('playsinline')
+    expect(video).toHaveAttribute('preload', 'metadata')
+    expect(video).toHaveAttribute('poster', '/assets/brand/hero-poster.webp')
+    expect(video).not.toHaveAttribute('src')
     expect(video?.muted).toBe(true)
     expect(container.querySelector('.hero-background__glyph .brand__glyph')).toBeInTheDocument()
 
@@ -278,7 +288,7 @@ describe('NovaLine landing', () => {
 
     expect(window.location.pathname).toBe('/servicios/')
     expect(window.location.hash).toBe('')
-    expect(screen.getByRole('heading', { level: 1, name: /La tecnología correcta se siente parte de tu empresa/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: /Servicios de software a la medida para operar mejor/i })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /Una plataforma clara para conectar toda tu operación/i })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /Menos pasos entre una buena experiencia/i })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /Procesos que avanzan sin perder contexto/i })).toBeInTheDocument()
@@ -287,7 +297,7 @@ describe('NovaLine landing', () => {
   it('presenta los servicios por secciones y conserva sus animaciones y casos reales', () => {
     window.history.replaceState({}, '', '/servicios/')
     const { container } = render(<App initialPath="/servicios/" />)
-    expect(screen.getByRole('heading', { level: 1, name: /La tecnología correcta se siente parte de tu empresa/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: /Servicios de software a la medida para operar mejor/i })).toBeInTheDocument()
     expect(container.querySelectorAll('.service-story')).toHaveLength(3)
     expect(container.querySelector('.service-ribbon')).not.toBeInTheDocument()
     expect(container.querySelector('.phone-stage')).toBeInTheDocument()
@@ -302,10 +312,12 @@ describe('NovaLine landing', () => {
 
   it('publica el contacto real sin inventar otros datos', () => {
     window.history.replaceState({}, '', '/contacto/')
-    render(<App initialPath="/contacto/" />)
+    const { container } = render(<App initialPath="/contacto/" />)
+    expect(container.querySelector('.header--dark-hero .brand--light')).toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 1, name: /Hablemos de lo que necesitas/i })).toBeInTheDocument()
     expect(screen.getByText('+57 322 896 8494')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Escribir por WhatsApp/i })).toHaveAttribute('href', expect.stringContaining(`wa.me/${SITE.whatsappNumber}`))
+    expect(screen.getAllByRole('link', { name: /Escribir por WhatsApp/i })).toHaveLength(2)
+    expect(screen.getAllByRole('link', { name: /Escribir por WhatsApp/i }).every((link) => link.getAttribute('href')?.includes(`wa.me/${SITE.whatsappNumber}`))).toBe(true)
     expect(screen.queryByText(/correo electrónico/i)).not.toBeInTheDocument()
     expect(screen.queryByText(/dirección física/i)).toBeInTheDocument()
   })

@@ -21,10 +21,23 @@ function useClarityTracking() {
     }
     clarityWindow.clarity = clarity
 
-    const script = document.createElement('script')
-    script.async = true
-    script.src = source
-    document.head.appendChild(script)
+    const loadScript = () => {
+      if (document.querySelector(`script[src="${source}"]`)) return
+      const script = document.createElement('script')
+      script.async = true
+      script.src = source
+      document.head.appendChild(script)
+    }
+    const idleWindow = window as Window & {
+      requestIdleCallback?: (callback: IdleRequestCallback, options?: IdleRequestOptions) => number
+      cancelIdleCallback?: (handle: number) => void
+    }
+    const idleHandle = idleWindow.requestIdleCallback?.(loadScript, { timeout: 2500 })
+    const timer = idleHandle === undefined ? window.setTimeout(loadScript, 1800) : undefined
+    return () => {
+      if (idleHandle !== undefined) idleWindow.cancelIdleCallback?.(idleHandle)
+      if (timer !== undefined) window.clearTimeout(timer)
+    }
   }, [])
 }
 
@@ -94,7 +107,7 @@ function Brand({ light = false }: { light?: boolean }) {
   )
 }
 
-function Header({ aboutMode = false, onAboutBrandChange }: { aboutMode?: boolean; onAboutBrandChange?: (visible: boolean) => void }) {
+function Header({ aboutMode = false, darkHero = false, onAboutBrandChange }: { aboutMode?: boolean; darkHero?: boolean; onAboutBrandChange?: (visible: boolean) => void }) {
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState('')
   const [scrolled, setScrolled] = useState(false)
@@ -164,13 +177,14 @@ function Header({ aboutMode = false, onAboutBrandChange }: { aboutMode?: boolean
   }
 
   return (
-    <header className={`header ${aboutMode ? 'header--about' : ''} ${scrolled ? 'header--scrolled' : ''} ${aboutMode && !aboutBrandVisible ? 'header--about-open' : ''} ${aboutMode && aboutBrandVisible ? 'header--brand-arrived' : ''}`}>
+    <header className={`header ${aboutMode ? 'header--about' : ''} ${darkHero && !scrolled ? 'header--dark-hero' : ''} ${scrolled ? 'header--scrolled' : ''} ${aboutMode && !aboutBrandVisible ? 'header--about-open' : ''} ${aboutMode && aboutBrandVisible ? 'header--brand-arrived' : ''}`}>
       <div className="header__inner shell">
-        <div className="header__brand-slot"><Brand /></div>
+        <div className="header__brand-slot"><Brand light={darkHero && !scrolled} /></div>
         <nav className={`nav ${open ? 'nav--open' : ''}`} aria-label="Navegación principal">
-          {NAV_ITEMS.map((item) => (
-            <a key={item.href} className={active === item.sectionId ? 'is-active' : ''} href={item.href} onClick={(event) => onNavClick(event, item)}>{item.label}</a>
-          ))}
+          {NAV_ITEMS.map((item) => {
+            const independentPage = !item.href.includes('#') && item.sectionId !== 'inicio'
+            return <a key={item.href} className={`${active === item.sectionId ? 'is-active' : ''} ${independentPage ? 'nav__page-link' : ''}`.trim()} href={item.href} onClick={(event) => onNavClick(event, item)}>{item.label}</a>
+          })}
           <a className="button button--small nav__mobile-cta" href={whatsappUrl()} target="_blank" rel="noreferrer" data-analytics-cta="quote_project"><WhatsAppIcon /> Cotizar proyecto</a>
         </nav>
         <a className="button button--small header__cta" href={whatsappUrl()} target="_blank" rel="noreferrer" data-analytics-cta="quote_project">Cotizar proyecto <Icon name="arrow" /></a>
@@ -241,7 +255,7 @@ function NfcStage({ active }: { active: boolean }) {
               alt="Tarjeta física para solicitar reseñas de Google mediante NFC"
               width="1063"
               height="1094"
-              loading="eager"
+              loading="lazy"
               decoding="async"
               draggable="false"
             />
@@ -364,16 +378,35 @@ function HeroBackground({ paused }: { paused: boolean }) {
   const stageRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const glyphRef = useRef<HTMLSpanElement>(null)
+  const [videoEnabled, setVideoEnabled] = useState(false)
+
+  useEffect(() => {
+    if (navigator.userAgent.includes('jsdom')) return
+    const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection
+    if (connection?.saveData || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
+
+    const idleWindow = window as Window & {
+      requestIdleCallback?: (callback: IdleRequestCallback, options?: IdleRequestOptions) => number
+      cancelIdleCallback?: (handle: number) => void
+    }
+    const enableVideo = () => setVideoEnabled(true)
+    const idleHandle = idleWindow.requestIdleCallback?.(enableVideo, { timeout: 2200 })
+    const timer = idleHandle === undefined ? window.setTimeout(enableVideo, 1200) : undefined
+    return () => {
+      if (idleHandle !== undefined) idleWindow.cancelIdleCallback?.(idleHandle)
+      if (timer !== undefined) window.clearTimeout(timer)
+    }
+  }, [])
 
   useEffect(() => {
     const video = videoRef.current
-    if (!video || navigator.userAgent.includes('jsdom')) return
+    if (!video || !videoEnabled || navigator.userAgent.includes('jsdom')) return
     if (paused) {
       video.pause()
     } else {
       void video.play().catch(() => undefined)
     }
-  }, [paused])
+  }, [paused, videoEnabled])
 
   useEffect(() => {
     const stage = stageRef.current
@@ -429,7 +462,7 @@ function HeroBackground({ paused }: { paused: boolean }) {
 
   return (
     <div ref={stageRef} className="hero-background" aria-hidden="true">
-      <video ref={videoRef} className="hero-background__video" src={HERO_VIDEO_URL} autoPlay muted loop playsInline preload="auto" aria-hidden="true" suppressHydrationWarning/>
+      <video ref={videoRef} className="hero-background__video" src={videoEnabled ? HERO_VIDEO_URL : undefined} poster="/assets/brand/hero-poster.webp" autoPlay muted loop playsInline preload="metadata" aria-hidden="true" suppressHydrationWarning/>
       <span ref={glyphRef} className="hero-background__glyph"><BrandGlyph /></span>
     </div>
   )
@@ -450,7 +483,7 @@ function ServiceRibbon({ paused }: { paused: boolean }) {
 
   useEffect(() => {
     const marquee = marqueeRef.current
-    if (!marquee || navigator.userAgent.includes('jsdom')) return
+    if (!marquee || paused || selected !== null || interacting || navigator.userAgent.includes('jsdom')) return
 
     let frame = 0
     let previousTime = performance.now()
@@ -458,16 +491,11 @@ function ServiceRibbon({ paused }: { paused: boolean }) {
       const elapsed = Math.min(time - previousTime, 64)
       previousTime = time
 
-      if (!interacting) {
+      const track = marquee.firstElementChild as HTMLElement | null
+      const groupWidth = (track?.scrollWidth ?? 0) / 3
+      if (groupWidth) {
+        marquee.scrollLeft += groupWidth * elapsed / 42000
         normalizeServiceRibbonPosition(marquee)
-        if (!paused && selected === null) {
-          const track = marquee.firstElementChild as HTMLElement | null
-          const groupWidth = (track?.scrollWidth ?? 0) / 3
-          if (groupWidth) {
-            marquee.scrollLeft += groupWidth * elapsed / 42000
-            normalizeServiceRibbonPosition(marquee)
-          }
-        }
       }
 
       frame = window.requestAnimationFrame(move)
@@ -564,7 +592,7 @@ function Hero() {
         <div className="shell hero-reference__content">
           <div className="hero-copy hero-reference__copy">
             <span className="hero-reference__eyebrow">Software a la medida para empresas</span>
-            <h1>Software que entiende cómo funciona tu empresa.</h1>
+            <h1>Software a la medida que entiende cómo funciona tu empresa.</h1>
             <p>Desarrollamos software a la medida para empresas en Colombia: aplicaciones web y sistemas que ordenan la operación, automatizan procesos y facilitan el crecimiento.</p>
             <div className="hero-copy__actions">
               <a className="button" href={whatsappUrl()} target="_blank" rel="noreferrer" data-analytics-cta="discuss_project">Cuéntanos qué necesitas <Icon name="arrow"/></a>
@@ -875,7 +903,7 @@ function ProjectsSection({ onOpenCase }: { onOpenCase: (slug: CaseSlug) => void 
               return (
                 <article className={`project-card ${project.featured ? 'project-card--featured' : ''}`} key={`${project.name}-${renderedIndex}`} aria-hidden={hiddenClone}>
                   <ProjectVisual project={project} index={originalIndex}/>
-                  <div className="project-card__content"><div className="project-card__top"><span>{project.category}</span><b>{project.name}</b></div><h3>{project.title}</h3><div className="project-card__metric"><strong>{project.metric}</strong><span>{project.metricLabel}</span></div><div className="tags">{project.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>{project.featured && <span className="project-card__action">Ver caso {project.name} <Icon name="arrow" size={16}/></span>}</div>
+                  <div className="project-card__content"><div className="project-card__top"><span>{project.category}</span><b>{project.name}</b></div>{hiddenClone ? <div className="project-card__title">{project.title}</div> : <h3>{project.title}</h3>}<div className="project-card__metric"><strong>{project.metric}</strong><span>{project.metricLabel}</span></div><div className="tags">{project.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>{project.featured && <span className="project-card__action">Ver caso {project.name} <Icon name="arrow" size={16}/></span>}</div>
                   {project.caseStudy && (
                     <a className="project-card__open" href={CASE_ROUTES[project.caseStudy as CaseSlug]} tabIndex={hiddenClone ? -1 : 0} aria-label={`Ver caso real de ${project.name}`} onClick={(event) => { event.preventDefault(); onOpenCase(project.caseStudy as CaseSlug) }}/>
                   )}
@@ -921,9 +949,6 @@ const SCREENSHOT_DIMENSIONS: Record<string, readonly [number, number]> = {
 }
 
 function ProjectScreenshot({ src, alt, sizes, priority = false, onClick }: { src: string; alt: string; sizes: string; priority?: boolean; onClick?: MouseEventHandler<HTMLImageElement> }) {
-  const loadImmediately = priority || Boolean(onClick)
-  const [shouldLoad, setShouldLoad] = useState(loadImmediately)
-  const pictureRef = useRef<HTMLPictureElement>(null)
   const separator = src.lastIndexOf('/')
   const folder = src.slice(0, separator)
   const stem = src.slice(separator + 1).replace(/\.[^.]+$/, '')
@@ -932,25 +957,14 @@ function ProjectScreenshot({ src, alt, sizes, priority = false, onClick }: { src
   const largeWidth = narrow ? 768 : 3200
   const srcSet = `${folder}/responsive/${stem}-${smallWidth}.png ${smallWidth}w, ${folder}/responsive/${stem}-${largeWidth}.png ${largeWidth}w`
   const webpSrcSet = `${folder}/responsive/${stem}-${smallWidth}.webp?v=2 ${smallWidth}w, ${folder}/responsive/${stem}-${largeWidth}.webp?v=2 ${largeWidth}w`
+  const avifSrcSet = `${folder}/responsive/${stem}-${smallWidth}.avif ${smallWidth}w, ${folder}/responsive/${stem}-${largeWidth}.avif ${largeWidth}w`
   const [width, height] = SCREENSHOT_DIMENSIONS[src]
 
-  useEffect(() => {
-    if (shouldLoad) return
-    const picture = pictureRef.current
-    if (!picture) return
-    const observer = new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting) return
-      setShouldLoad(true)
-      observer.disconnect()
-    }, { rootMargin: '100px 0px' })
-    observer.observe(picture)
-    return () => observer.disconnect()
-  }, [shouldLoad])
-
   return (
-    <picture ref={pictureRef}>
-      {shouldLoad && <source type="image/webp" srcSet={webpSrcSet} sizes={sizes} />}
-      <img src={shouldLoad ? src : undefined} srcSet={shouldLoad ? srcSet : undefined} sizes={sizes} alt={alt} width={width} height={height} loading={priority ? 'eager' : 'lazy'} decoding={priority ? 'auto' : 'async'} fetchPriority={priority ? 'high' : 'auto'} onClick={onClick} />
+    <picture>
+      <source type="image/avif" srcSet={avifSrcSet} sizes={sizes} />
+      <source type="image/webp" srcSet={webpSrcSet} sizes={sizes} />
+      <img src={src} srcSet={srcSet} sizes={sizes} alt={alt} width={width} height={height} loading={priority ? 'eager' : 'lazy'} decoding={priority ? 'auto' : 'async'} fetchPriority={priority ? 'high' : 'auto'} onClick={onClick} />
     </picture>
   )
 }
@@ -1553,13 +1567,14 @@ function ContactPage() {
   const telephone = `+${SITE.whatsappNumber}`
   return (
     <>
-      <Header />
+      <Header darkHero />
       <main className="trust-page">
         <section className="trust-page__hero">
           <div className="shell trust-page__intro">
             <span>Contacto</span>
             <h1>Hablemos de lo que necesitas construir o mejorar.</h1>
             <p>NovaLine atiende las conversaciones iniciales por teléfono y WhatsApp. Puedes contarnos brevemente el contexto de tu empresa y la necesidad que quieres resolver.</p>
+            <a className="button button--whatsapp trust-page__hero-action" href={whatsappUrl()} target="_blank" rel="noreferrer" data-analytics-cta="contact_hero_whatsapp"><WhatsAppIcon size={22}/> Escribir por WhatsApp <Icon name="arrow" size={18}/></a>
           </div>
         </section>
         <section className="trust-page__body">
@@ -1587,7 +1602,7 @@ function ContactPage() {
 function PrivacyPage() {
   return (
     <>
-      <Header />
+      <Header darkHero />
       <main className="trust-page">
         <section className="trust-page__hero">
           <div className="shell trust-page__intro">
@@ -1655,7 +1670,7 @@ function ServicesPage() {
           <div className="shell services-page__hero-grid">
             <div className="services-page__hero-copy">
               <span className="services-page__eyebrow">Servicios de desarrollo</span>
-              <h1>La tecnología correcta se siente parte de tu empresa.</h1>
+              <h1>Servicios de software a la medida para operar mejor.</h1>
               <p>Diseñamos productos digitales alrededor de procesos reales: herramientas para operar mejor, experiencias que conectan y automatizaciones que liberan tiempo.</p>
               <a className="button" href="#software-a-medida">Explorar cómo podemos ayudarte <Icon name="arrow"/></a>
             </div>
@@ -1688,6 +1703,7 @@ function ServicesPage() {
               </div>
             </div>
             <div className="service-story__visual service-story__visual--phones" aria-label="Interfaces de software adaptadas a distintos procesos">
+              <span className="service-story__demo-label">Demostración visual · datos ilustrativos</span>
               <PhoneStage demoIndex={demoIndex}/>
             </div>
           </div>
@@ -1731,7 +1747,63 @@ function ServicesPage() {
               </div>
             </div>
             <div className="service-story__process-visual">
+              <span className="service-story__demo-label service-story__demo-label--dark">Demostración visual · datos ilustrativos</span>
               <ProcessAnimationStage active={!automationPause.paused} paused={automationPause.paused}/>
+            </div>
+          </div>
+        </section>
+
+        <section className="services-guide" aria-labelledby="services-guide-title">
+          <div className="shell">
+            <div className="services-guide__intro">
+              <span className="services-page__eyebrow">Elegir con contexto</span>
+              <h2 id="services-guide-title">Cómo saber qué solución necesita tu empresa.</h2>
+              <p>El software a la medida tiene sentido cuando los procesos importantes no encajan bien en herramientas genéricas, la información está repartida o el equipo repite tareas que podrían conectarse. Antes de proponer tecnología, NovaLine identifica el problema operativo, los usuarios, las reglas y el resultado que debe mejorar.</p>
+            </div>
+            <div className="services-guide__paths">
+              <article>
+                <span>01</span>
+                <h3>Un sistema nuevo para un proceso propio</h3>
+                <p>Diseñamos CRM, ERP y aplicaciones internas cuando la operación necesita permisos, flujos, estados o reportes particulares. La solución se organiza alrededor del trabajo real y puede crecer por etapas sin forzar al equipo a adoptar una plantilla ajena.</p>
+                <a href="/proyectos/formula-animal/">Ver un CRM conectado <Icon name="arrow" size={16}/></a>
+              </article>
+              <article>
+                <span>02</span>
+                <h3>Una experiencia web para clientes o equipos</h3>
+                <p>Creamos portales, catálogos y aplicaciones responsive cuando el objetivo es presentar información, facilitar una decisión o convertir una visita en una acción clara. El recorrido se adapta a cada pantalla y se conecta con los canales que ya usa la empresa.</p>
+                <a href="/proyectos/native-haus/">Ver una experiencia comercial <Icon name="arrow" size={16}/></a>
+              </article>
+              <article>
+                <span>03</span>
+                <h3>Automatizar y evolucionar lo que ya existe</h3>
+                <p>Conectamos tareas, documentos y estados para reducir trabajo manual y recuperar trazabilidad. También acompañamos productos en funcionamiento: entendemos su contexto, priorizamos cambios y hacemos entregas verificables para que la solución siga el ritmo del negocio.</p>
+                <a href="/proyectos/lia/">Ver una automatización con IA <Icon name="arrow" size={16}/></a>
+              </article>
+            </div>
+            <div className="services-guide__process">
+              <div>
+                <span className="services-page__eyebrow">Proceso de trabajo</span>
+                <h2>De la necesidad a una entrega que el equipo puede validar.</h2>
+                <p>El proceso de NovaLine tiene cuatro etapas: entender el negocio, validar un prototipo, construir entregas funcionales y acompañar la evolución después del lanzamiento.</p>
+              </div>
+              <ol>
+                <li><strong>Entender</strong><span>Mapeamos el proceso, el problema y el resultado esperado.</span></li>
+                <li><strong>Validar</strong><span>Convertimos los hallazgos en flujos y un prototipo navegable.</span></li>
+                <li><strong>Construir</strong><span>Entregamos por etapas para revisar avances con usuarios reales.</span></li>
+                <li><strong>Evolucionar</strong><span>Acompañamos la adopción, el mantenimiento y las nuevas prioridades.</span></li>
+              </ol>
+            </div>
+            <div className="services-guide__questions">
+              <div>
+                <span className="services-page__eyebrow">Preguntas frecuentes</span>
+                <h2>Lo que conviene definir antes de empezar.</h2>
+              </div>
+              <div className="services-guide__answers">
+                <article><h3>¿Cuándo conviene desarrollar software a la medida?</h3><p>Cuando un proceso clave tiene reglas propias, varias herramientas no se comunican o el trabajo manual dificulta el control. Primero revisamos si una solución personalizada aporta una ventaja real.</p></article>
+                <article><h3>¿Qué necesitan para estimar el alcance?</h3><p>Una conversación sobre el problema, las personas que usarán la solución, la información disponible y el resultado esperado. Con ese contexto se pueden ordenar prioridades y plantear una primera etapa verificable.</p></article>
+                <article><h3>¿Pueden evolucionar una solución existente?</h3><p>Sí. El punto de partida es comprender el producto actual, sus dependencias y los riesgos del cambio. Después se priorizan mejoras que puedan probarse sin perder el contexto operativo.</p></article>
+                <article><h3>¿Qué ocurre después del lanzamiento?</h3><p>La solución se observa en uso, se atienden ajustes y se planifican nuevas necesidades. El soporte cercano permite conservar conocimiento del negocio mientras el producto evoluciona.</p></article>
+              </div>
             </div>
           </div>
         </section>

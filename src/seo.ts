@@ -5,8 +5,9 @@ type JsonLd = Record<string, unknown>
 
 const organizationId = `${SITE_ORIGIN}/#organization`
 const websiteId = `${SITE_ORIGIN}/#website`
-const logoUrl = absoluteUrl('/favicon.svg')
+const logoUrl = absoluteUrl('/assets/brand/novaline-logo-512.png')
 const caseRouteKeys = new Set(['formula-animal', 'native-haus', 'nexus-pos', 'lia'])
+const organizationDescription = 'NovaLine es un equipo colombiano de desarrollo de software a la medida. Diseña CRM, ERP, aplicaciones web y automatizaciones alrededor de los procesos, roles y objetivos de cada empresa.'
 
 function imageMimeType(path: string) {
   if (/\.png$/i.test(path)) return 'image/png'
@@ -20,14 +21,15 @@ function organizationSchema(): JsonLd {
     '@type': 'Organization',
     '@id': organizationId,
     name: SITE.brand,
+    description: organizationDescription,
     url: `${SITE_ORIGIN}/`,
     logo: {
       '@type': 'ImageObject',
       '@id': `${SITE_ORIGIN}/#logo`,
       url: logoUrl,
       contentUrl: logoUrl,
-      width: 64,
-      height: 64,
+      width: 512,
+      height: 512,
     },
     telephone: `+${SITE.whatsappNumber}`,
     contactPoint: {
@@ -53,8 +55,11 @@ function websiteSchema(): JsonLd {
 
 function webpageSchema(route: RouteDefinition): JsonLd {
   const canonical = absoluteUrl(route.path)
+  const pageType = route.key === 'contact'
+    ? 'ContactPage'
+    : route.key === 'about' ? 'AboutPage' : 'WebPage'
   const page: JsonLd = {
-    '@type': route.key === 'contact' ? 'ContactPage' : 'WebPage',
+    '@type': pageType,
     '@id': `${canonical}#webpage`,
     url: canonical,
     name: route.title,
@@ -63,8 +68,41 @@ function webpageSchema(route: RouteDefinition): JsonLd {
     isPartOf: { '@id': websiteId },
     about: { '@id': organizationId },
   }
+  if (route.key !== 'home') page.breadcrumb = { '@id': `${canonical}#breadcrumb` }
+  if (route.key === 'home' || route.key === 'contact') page.mainEntity = { '@id': organizationId }
+  if (route.key === 'services') {
+    page.mainEntity = SERVICES.map((_, index) => ({ '@id': `${canonical}#service-${index + 1}` }))
+  }
+  if (route.key === 'about') {
+    page.mainEntity = { '@id': organizationId }
+    page.mentions = TEAM_MEMBERS.map((_, index) => ({ '@id': `${canonical}#person-${index + 1}` }))
+  }
+  if (route.key === 'privacy') page.dateModified = '2026-09-16'
   if (caseRouteKeys.has(route.key)) page.mainEntity = { '@id': `${canonical}#case-study` }
   return page
+}
+
+function breadcrumbSchema(route: RouteDefinition): JsonLd | undefined {
+  if (route.key === 'home') return undefined
+  const canonical = absoluteUrl(route.path)
+  return {
+    '@type': 'BreadcrumbList',
+    '@id': `${canonical}#breadcrumb`,
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Inicio',
+        item: `${SITE_ORIGIN}/`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: route.title.replace(/ \| (Caso )?NovaLine$/, ''),
+        item: canonical,
+      },
+    ],
+  }
 }
 
 function serviceSchemas(): JsonLd[] {
@@ -88,6 +126,8 @@ function personSchemas(): JsonLd[] {
     '@id': `${absoluteUrl(ROUTES.about.path)}#person-${index + 1}`,
     name: member.name,
     jobTitle: member.role,
+    description: member.bio,
+    knowsAbout: member.specialty.split(' · '),
     image: absoluteUrl(member.photo),
     worksFor: { '@id': organizationId },
   }))
@@ -103,6 +143,7 @@ function caseStudySchema(route: RouteDefinition): JsonLd {
     description: route.description,
     inLanguage: 'es-CO',
     creator: { '@id': organizationId },
+    mainEntityOfPage: { '@id': `${canonical}#webpage` },
     ...(route.ogImage ? { image: absoluteUrl(route.ogImage) } : {}),
   }
 }
@@ -110,6 +151,8 @@ function caseStudySchema(route: RouteDefinition): JsonLd {
 export function getJsonLd(pathname: string): JsonLd {
   const route = resolveRoute(pathname)
   const graph = [organizationSchema(), websiteSchema(), webpageSchema(route)]
+  const breadcrumb = breadcrumbSchema(route)
+  if (breadcrumb) graph.push(breadcrumb)
   if (route.key === 'services') graph.push(...serviceSchemas())
   if (route.key === 'about') graph.push(...personSchemas())
   if (caseRouteKeys.has(route.key)) graph.push(caseStudySchema(route))

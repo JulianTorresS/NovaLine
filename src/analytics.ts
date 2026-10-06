@@ -73,12 +73,19 @@ export function useGoogleAnalytics() {
       analyticsWindow.dataLayer?.push(arguments)
     }
 
-    if (!document.querySelector(`script[src="${GA_SCRIPT_URL}"]`)) {
+    const loadScript = () => {
+      if (document.querySelector(`script[src="${GA_SCRIPT_URL}"]`)) return
       const script = document.createElement('script')
       script.async = true
       script.src = GA_SCRIPT_URL
       document.head.appendChild(script)
     }
+    const idleWindow = window as Window & {
+      requestIdleCallback?: (callback: IdleRequestCallback, options?: IdleRequestOptions) => number
+      cancelIdleCallback?: (handle: number) => void
+    }
+    const idleHandle = idleWindow.requestIdleCallback?.(loadScript, { timeout: 2500 })
+    const timer = idleHandle === undefined ? window.setTimeout(loadScript, 1800) : undefined
 
     if (!analyticsWindow.__novalineGaInitialized) {
       analyticsWindow.__novalineGaInitialized = true
@@ -88,6 +95,10 @@ export function useGoogleAnalytics() {
 
     const onClick = (event: MouseEvent) => sendClickEvents(event, analyticsWindow.gtag as Gtag)
     document.addEventListener('click', onClick, { capture: true })
-    return () => document.removeEventListener('click', onClick, { capture: true })
+    return () => {
+      document.removeEventListener('click', onClick, { capture: true })
+      if (idleHandle !== undefined) idleWindow.cancelIdleCallback?.(idleHandle)
+      if (timer !== undefined) window.clearTimeout(timer)
+    }
   }, [])
 }

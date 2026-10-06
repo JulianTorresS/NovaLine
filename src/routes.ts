@@ -25,7 +25,7 @@ export const ROUTES: Record<RouteKey, RouteDefinition> = {
   services: {
     key: 'services',
     path: '/servicios/',
-    title: 'Servicios de desarrollo de software a medida | NovaLine',
+    title: 'Servicios de software a medida y automatización | NovaLine',
     description: 'Creamos software empresarial, aplicaciones web y automatizaciones adaptadas a cada operación, con mantenimiento y soporte cercano en Colombia.',
     ogImage: '/assets/social/novaline-servicios-1200x630-v2.png',
     ogImageWidth: 1200,
@@ -34,7 +34,7 @@ export const ROUTES: Record<RouteKey, RouteDefinition> = {
   about: {
     key: 'about',
     path: '/nosotros/',
-    title: 'Equipo y forma de trabajo | NovaLine',
+    title: 'Equipo de desarrollo de software en Colombia | NovaLine',
     description: 'Conoce al equipo de NovaLine y cómo entendemos, diseñamos y construimos soluciones de software adaptadas a los procesos de cada empresa.',
     ogImage: '/assets/social/novaline-equipo-1200x630.jpg',
     ogImageWidth: 1200,
@@ -43,7 +43,7 @@ export const ROUTES: Record<RouteKey, RouteDefinition> = {
   contact: {
     key: 'contact',
     path: '/contacto/',
-    title: 'Contacto | NovaLine',
+    title: 'Contacto para proyectos de software | NovaLine',
     description: 'Contacta a NovaLine por teléfono o WhatsApp para conversar sobre una necesidad de software, automatización o producto digital para tu empresa.',
   },
   privacy: {
@@ -82,7 +82,7 @@ export const ROUTES: Record<RouteKey, RouteDefinition> = {
   lia: {
     key: 'lia',
     path: '/proyectos/lia/',
-    title: 'Lia: agente inteligente empresarial | Caso NovaLine',
+    title: 'Agente de IA empresarial Lia | Caso NovaLine',
     description: 'Conoce a Lia, un agente inteligente empresarial que analiza información, conecta documentos y facilita automatizaciones para los equipos.',
     ogImage: '/assets/lia/cover.png',
     ogImageWidth: 744,
