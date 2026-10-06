@@ -1,4 +1,4 @@
-import { CSSProperties, MouseEvent as ReactMouseEvent, MouseEventHandler, PointerEvent as ReactPointerEvent, ReactNode, TransitionEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { CSSProperties, MouseEvent as ReactMouseEvent, MouseEventHandler, PointerEvent as ReactPointerEvent, ReactNode, TransitionEvent, UIEvent as ReactUIEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { NAV_ITEMS, PHONE_DEMOS, PROCESS, PROJECTS, SERVICES, SITE, TEAM_MEMBERS, whatsappUrl } from './config'
 import { CASE_ROUTES, normalizePathname, PUBLIC_ROUTES, resolveRoute } from './routes'
 import { applySeoToDocument } from './seo'
@@ -348,6 +348,8 @@ const SERVICE_RIBBON = [
   { name: 'Procesos animados', description: 'Convertimos flujos complejos en experiencias visuales fáciles de explicar y seguir.', message: 'Hola, quiero visualizar un proceso con una experiencia animada.' },
   { name: 'Soporte y evolución', description: 'Acompañamos el producto después del lanzamiento para mantenerlo y hacerlo evolucionar.', message: 'Hola, quiero conversar sobre soporte y evolución de software.' },
 ]
+const SERVICE_RIBBON_COPIES = 5
+const SERVICE_RIBBON_CENTER_COPY = Math.floor(SERVICE_RIBBON_COPIES / 2)
 
 function ServiceRibbonIcon({ index }: { index: number }) {
   const paths: ReactNode[] = [
@@ -365,12 +367,12 @@ function ServiceRibbonIcon({ index }: { index: number }) {
 
 function normalizeServiceRibbonPosition(marquee: HTMLDivElement) {
   const track = marquee.firstElementChild as HTMLElement | null
-  const groupWidth = (track?.scrollWidth ?? 0) / 3
+  const groupWidth = (track?.scrollWidth ?? 0) / SERVICE_RIBBON_COPIES
   if (!groupWidth) return
 
   let nextPosition = marquee.scrollLeft
-  while (nextPosition < groupWidth) nextPosition += groupWidth
-  while (nextPosition >= groupWidth * 2) nextPosition -= groupWidth
+  while (nextPosition < groupWidth * SERVICE_RIBBON_CENTER_COPY) nextPosition += groupWidth
+  while (nextPosition >= groupWidth * (SERVICE_RIBBON_CENTER_COPY + 1)) nextPosition -= groupWidth
   if (nextPosition !== marquee.scrollLeft) marquee.scrollLeft = nextPosition
 }
 
@@ -379,21 +381,19 @@ function HeroBackground({ paused }: { paused: boolean }) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const glyphRef = useRef<HTMLSpanElement>(null)
   const [videoEnabled, setVideoEnabled] = useState(false)
+  const [videoReady, setVideoReady] = useState(false)
 
   useEffect(() => {
     if (navigator.userAgent.includes('jsdom')) return
     const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection
     if (connection?.saveData || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
 
-    const idleWindow = window as Window & {
-      requestIdleCallback?: (callback: IdleRequestCallback, options?: IdleRequestOptions) => number
-      cancelIdleCallback?: (handle: number) => void
-    }
-    const enableVideo = () => setVideoEnabled(true)
-    const idleHandle = idleWindow.requestIdleCallback?.(enableVideo, { timeout: 2200 })
-    const timer = idleHandle === undefined ? window.setTimeout(enableVideo, 1200) : undefined
+    let timer: number | undefined
+    const frame = window.requestAnimationFrame(() => {
+      timer = window.setTimeout(() => setVideoEnabled(true), 120)
+    })
     return () => {
-      if (idleHandle !== undefined) idleWindow.cancelIdleCallback?.(idleHandle)
+      window.cancelAnimationFrame(frame)
       if (timer !== undefined) window.clearTimeout(timer)
     }
   }, [])
@@ -462,7 +462,8 @@ function HeroBackground({ paused }: { paused: boolean }) {
 
   return (
     <div ref={stageRef} className="hero-background" aria-hidden="true">
-      <video ref={videoRef} className="hero-background__video" src={videoEnabled ? HERO_VIDEO_URL : undefined} poster="/assets/brand/hero-poster.webp" autoPlay muted loop playsInline preload="metadata" aria-hidden="true" suppressHydrationWarning/>
+      <img className={`hero-background__poster ${videoReady ? 'is-hidden' : ''}`} src="/assets/brand/hero-poster.webp" alt="" width="1600" height="900" loading="eager" decoding="async" fetchPriority="high" />
+      <video ref={videoRef} className={`hero-background__video ${videoReady ? 'is-ready' : ''}`} src={videoEnabled ? HERO_VIDEO_URL : undefined} autoPlay muted loop playsInline preload="metadata" aria-hidden="true" onCanPlay={() => setVideoReady(true)} suppressHydrationWarning/>
       <span ref={glyphRef} className="hero-background__glyph"><BrandGlyph /></span>
     </div>
   )
@@ -475,10 +476,12 @@ function ServiceRibbon({ paused }: { paused: boolean }) {
   const dragRef = useRef<{ pointerId: number; startX: number; startScroll: number; moved: boolean } | null>(null)
   const suppressClickRef = useRef(false)
   const releaseInteractionRef = useRef<number | null>(null)
+  const normalizeFrameRef = useRef<number | null>(null)
   const activeService = selected === null ? null : SERVICE_RIBBON[selected]
 
   useEffect(() => () => {
     if (releaseInteractionRef.current !== null) window.clearTimeout(releaseInteractionRef.current)
+    if (normalizeFrameRef.current !== null) window.cancelAnimationFrame(normalizeFrameRef.current)
   }, [])
 
   useEffect(() => {
@@ -492,7 +495,7 @@ function ServiceRibbon({ paused }: { paused: boolean }) {
       previousTime = time
 
       const track = marquee.firstElementChild as HTMLElement | null
-      const groupWidth = (track?.scrollWidth ?? 0) / 3
+      const groupWidth = (track?.scrollWidth ?? 0) / SERVICE_RIBBON_COPIES
       if (groupWidth) {
         marquee.scrollLeft += groupWidth * elapsed / 42000
         normalizeServiceRibbonPosition(marquee)
@@ -545,7 +548,15 @@ function ServiceRibbon({ paused }: { paused: boolean }) {
     releaseInteractionRef.current = window.setTimeout(() => {
       setInteracting(false)
       releaseInteractionRef.current = null
-    }, 0)
+    }, event.pointerType === 'touch' ? 700 : 0)
+  }
+  const onMarqueeScroll = (event: ReactUIEvent<HTMLDivElement>) => {
+    const marquee = event.currentTarget
+    if (normalizeFrameRef.current !== null) return
+    normalizeFrameRef.current = window.requestAnimationFrame(() => {
+      normalizeFrameRef.current = null
+      normalizeServiceRibbonPosition(marquee)
+    })
   }
   const onMarqueeClick = (event: ReactMouseEvent<HTMLDivElement>) => {
     if (!suppressClickRef.current) return
@@ -557,12 +568,12 @@ function ServiceRibbon({ paused }: { paused: boolean }) {
   return (
     <section className={`service-ribbon ${paused ? 'is-paused' : ''} ${selected !== null ? 'has-detail' : ''} ${interacting ? 'is-interacting' : ''}`} aria-label="Servicios destacados de NovaLine">
       <h2 className="sr-only">Servicios de NovaLine</h2>
-      <div ref={marqueeRef} className="service-ribbon__marquee" aria-label="Desliza para explorar los servicios" onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={finishInteraction} onPointerCancel={finishInteraction} onClickCapture={onMarqueeClick}>
+      <div ref={marqueeRef} className="service-ribbon__marquee" aria-label="Desliza para explorar los servicios" onScroll={onMarqueeScroll} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={finishInteraction} onPointerCancel={finishInteraction} onClickCapture={onMarqueeClick}>
         <div className="service-ribbon__track">
-          {[0, 1, 2].map((copy) => (
-            <div className="service-ribbon__group" aria-hidden={copy !== 1} key={copy}>
+          {Array.from({ length: SERVICE_RIBBON_COPIES }, (_, copy) => (
+            <div className="service-ribbon__group" aria-hidden={copy !== SERVICE_RIBBON_CENTER_COPY} key={copy}>
               {SERVICE_RIBBON.map((service, index) => (
-                <button className={selected === index ? 'is-active' : ''} type="button" onClick={() => setSelected((current) => current === index ? null : index)} tabIndex={copy === 1 ? 0 : -1} aria-expanded={copy === 1 ? selected === index : undefined} key={`${copy}-${service.name}`}>
+                <button className={selected === index ? 'is-active' : ''} type="button" onClick={() => setSelected((current) => current === index ? null : index)} tabIndex={copy === SERVICE_RIBBON_CENTER_COPY ? 0 : -1} aria-expanded={copy === SERVICE_RIBBON_CENTER_COPY ? selected === index : undefined} key={`${copy}-${service.name}`}>
                   <ServiceRibbonIcon index={index}/><span>{service.name}</span>
                 </button>
               ))}

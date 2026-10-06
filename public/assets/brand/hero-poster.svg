@@ -24,10 +24,7 @@
   <rect width="1600" height="900" fill="url(#background)"/>
   <ellipse cx="1120" cy="450" rx="540" ry="390" fill="url(#glow)"/>
   <rect x="570" y="250" width="1150" height="850" fill="url(#grid)" opacity=".84"/>
-  <g transform="translate(1065 435) rotate(-7)" filter="url(#shadow)">
-    <rect x="-150" y="-150" width="300" height="300" rx="68" fill="url(#tile)" stroke="#8ccaff" stroke-width="5"/>
-    <path d="M-76 46h73L47-86 74 3h71" fill="none" stroke="#fff" stroke-width="31" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="-76" cy="46" r="20" fill="#52e7db"/>
-    <circle cx="145" cy="3" r="20" fill="#52e7db"/>
+  <g transform="translate(1065 470) rotate(-7)" filter="url(#shadow)">
+    <rect x="-160" y="-110" width="320" height="220" rx="58" fill="url(#tile)" stroke="#8ccaff" stroke-width="5"/>
   </g>
 </svg>

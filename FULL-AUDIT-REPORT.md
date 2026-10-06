@@ -24,7 +24,7 @@ Las correcciones locales elevan la estimación ponderada de 76/100 a 88/100. Est
 | Imágenes | 5% | 82 | 97 | AVIF, HTML descubrible, dimensiones y carga correctos |
 | **SEO Health Score** | **100%** | **76** | **88** | **Bueno, con trabajo externo pendiente** |
 
-\* No se aumenta el score de rendimiento sin una nueva medición independiente. El cambio sí evita solicitar el video antes del tiempo ocioso y difiere scripts de analítica.
+\* No se aumenta el score de rendimiento sin una nueva medición independiente. El cambio evita solicitar el video durante el render inicial y difiere scripts de analítica.
 
 ## Cambios implementados
 
@@ -80,7 +80,7 @@ Medición Lighthouse de producción durante la auditoría:
 
 Cambios aplicados después de la medición:
 
-- El video de 2,79 MB ya no se solicita durante el render inicial; usa un póster WebP local de 15 KB, `preload="metadata"` y carga en tiempo ocioso.
+- El video de 2,79 MB ya no se solicita durante el render inicial; usa un póster WebP local de 13 KB y comienza a cargar después del primer pintado, con una transición suave al estar listo.
 - El video no se carga con ahorro de datos ni con preferencia de movimiento reducido.
 - Google Analytics y Microsoft Clarity conservan su cola de eventos, pero difieren la descarga de sus scripts hasta tiempo ocioso.
 - El marquee deja de leer/escribir layout cuando está pausado, seleccionado, en interacción o fuera del hero.

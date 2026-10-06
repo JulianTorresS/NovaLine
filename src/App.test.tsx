@@ -76,16 +76,23 @@ describe('NovaLine landing', () => {
     expect(video).toHaveAttribute('loop')
     expect(video).toHaveAttribute('playsinline')
     expect(video).toHaveAttribute('preload', 'metadata')
-    expect(video).toHaveAttribute('poster', '/assets/brand/hero-poster.webp')
+    const poster = container.querySelector('.hero-background__poster')
+    expect(poster).toHaveAttribute('src', '/assets/brand/hero-poster.webp')
     expect(video).not.toHaveAttribute('src')
     expect(video?.muted).toBe(true)
     expect(container.querySelector('.hero-background__glyph .brand__glyph')).toBeInTheDocument()
+
+    fireEvent.canPlay(video as HTMLVideoElement)
+    expect(video).toHaveClass('is-ready')
+    expect(poster).toHaveClass('is-hidden')
 
     const pauseButton = screen.getByRole('button', { name: 'Pausar animaciones' })
     fireEvent.click(pauseButton)
     expect(screen.getByRole('button', { name: 'Reanudar animaciones' })).toHaveAttribute('aria-pressed', 'true')
 
     const ribbon = container.querySelector('.service-ribbon') as HTMLElement
+    expect(ribbon.querySelectorAll('.service-ribbon__group')).toHaveLength(5)
+    expect(ribbon.querySelectorAll('.service-ribbon__group[aria-hidden="false"]')).toHaveLength(1)
     expect(ribbon.querySelectorAll('.service-ribbon__group:first-child button')).toHaveLength(8)
     const softwareCard = Array.from(ribbon.querySelectorAll('button')).find((button) => button.textContent?.includes('Software a medida')) as HTMLButtonElement
     fireEvent.click(softwareCard)
@@ -186,6 +193,13 @@ describe('NovaLine landing', () => {
     expect(marquee.scrollLeft).toBeGreaterThanOrEqual(1600)
     expect(marquee.scrollLeft).toBeLessThan(3200)
     await waitFor(() => expect(ribbon).not.toHaveClass('is-interacting'))
+
+    marquee.scrollLeft = 4700
+    fireEvent.scroll(marquee)
+    await waitFor(() => {
+      expect(marquee.scrollLeft).toBeGreaterThanOrEqual(1920)
+      expect(marquee.scrollLeft).toBeLessThan(2880)
+    })
   })
 
   it('presenta la identidad y la sección Nosotros de NovaLine', () => {
