@@ -378,33 +378,17 @@ function HeroBackground({ paused }: { paused: boolean }) {
   const stageRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const glyphRef = useRef<HTMLSpanElement>(null)
-  const [videoEnabled, setVideoEnabled] = useState(false)
-  const [videoReady, setVideoReady] = useState(false)
-
-  useEffect(() => {
-    if (navigator.userAgent.includes('jsdom')) return
-    const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection
-    if (connection?.saveData || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
-
-    let timer: number | undefined
-    const frame = window.requestAnimationFrame(() => {
-      timer = window.setTimeout(() => setVideoEnabled(true), 120)
-    })
-    return () => {
-      window.cancelAnimationFrame(frame)
-      if (timer !== undefined) window.clearTimeout(timer)
-    }
-  }, [])
 
   useEffect(() => {
     const video = videoRef.current
-    if (!video || !videoEnabled || navigator.userAgent.includes('jsdom')) return
+    if (!video) return
+    if (navigator.userAgent.includes('jsdom')) return
     if (paused) {
       video.pause()
     } else {
       void video.play().catch(() => undefined)
     }
-  }, [paused, videoEnabled])
+  }, [paused])
 
   useEffect(() => {
     const stage = stageRef.current
@@ -460,9 +444,8 @@ function HeroBackground({ paused }: { paused: boolean }) {
 
   return (
     <div ref={stageRef} className="hero-background" aria-hidden="true">
-      <img className={`hero-background__poster ${videoReady ? 'is-hidden' : ''}`} src="/assets/brand/hero-poster.webp" alt="" width="1600" height="900" loading="eager" decoding="async" fetchPriority="high" />
-      <video ref={videoRef} className={`hero-background__video ${videoReady ? 'is-ready' : ''}`} src={videoEnabled ? HERO_VIDEO_URL : undefined} autoPlay muted loop playsInline preload="metadata" aria-hidden="true" onCanPlay={() => setVideoReady(true)} suppressHydrationWarning/>
-      <span ref={glyphRef} className={`hero-background__glyph ${videoReady ? 'is-ready' : ''}`}><BrandGlyph /></span>
+      <video ref={videoRef} className="hero-background__video" src={HERO_VIDEO_URL} autoPlay muted loop playsInline preload="auto" aria-hidden="true" suppressHydrationWarning/>
+      <span ref={glyphRef} className="hero-background__glyph"><BrandGlyph /></span>
     </div>
   )
 }
@@ -478,6 +461,7 @@ function ServiceRibbon({ paused }: { paused: boolean }) {
   const dragRef = useRef<{ pointerId: number; startX: number; startOffset: number; lastX: number; lastTime: number; velocity: number; moved: boolean } | null>(null)
   const suppressClickRef = useRef(false)
   const clickResetRef = useRef<number | null>(null)
+  const wheelEndRef = useRef<number | null>(null)
   const momentumFrameRef = useRef<number | null>(null)
   const activeService = selected === null ? null : SERVICE_RIBBON[selected]
 
@@ -519,7 +503,34 @@ function ServiceRibbon({ paused }: { paused: boolean }) {
   useEffect(() => () => {
     stopMomentum()
     if (clickResetRef.current !== null) window.clearTimeout(clickResetRef.current)
+    if (wheelEndRef.current !== null) window.clearTimeout(wheelEndRef.current)
   }, [stopMomentum])
+
+  useEffect(() => {
+    const marquee = marqueeRef.current
+    if (!marquee) return
+
+    const handleWheel = (event: WheelEvent) => {
+      const shiftedDelta = event.shiftKey && Math.abs(event.deltaX) < 1 ? event.deltaY : event.deltaX
+      if (Math.abs(shiftedDelta) < 1 || (!event.shiftKey && Math.abs(shiftedDelta) < Math.abs(event.deltaY) * .75)) return
+
+      event.preventDefault()
+      stopMomentum()
+      const groupWidth = firstGroupRef.current?.getBoundingClientRect().width ?? 0
+      if (!positionedRef.current && groupWidth) applyOffset(-groupWidth, groupWidth)
+      applyOffset(offsetRef.current - shiftedDelta, groupWidth || undefined)
+      setInteracting(true)
+
+      if (wheelEndRef.current !== null) window.clearTimeout(wheelEndRef.current)
+      wheelEndRef.current = window.setTimeout(() => {
+        wheelEndRef.current = null
+        setInteracting(false)
+      }, 140)
+    }
+
+    marquee.addEventListener('wheel', handleWheel, { passive: false })
+    return () => marquee.removeEventListener('wheel', handleWheel)
+  }, [applyOffset, stopMomentum])
 
   useEffect(() => {
     const marquee = marqueeRef.current

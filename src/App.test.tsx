@@ -75,19 +75,12 @@ describe('NovaLine landing', () => {
     expect(video).toHaveAttribute('autoplay')
     expect(video).toHaveAttribute('loop')
     expect(video).toHaveAttribute('playsinline')
-    expect(video).toHaveAttribute('preload', 'metadata')
-    const poster = container.querySelector('.hero-background__poster')
-    expect(poster).toHaveAttribute('src', '/assets/brand/hero-poster.webp')
-    expect(video).not.toHaveAttribute('src')
+    expect(video).toHaveAttribute('preload', 'auto')
+    expect(video?.getAttribute('src')).toMatch(/^https:\/\/.*\.mp4$/)
+    expect(container.querySelector('.hero-background__poster')).not.toBeInTheDocument()
     expect(video?.muted).toBe(true)
     const heroGlyph = container.querySelector('.hero-background__glyph')
     expect(heroGlyph?.querySelector('.brand__glyph')).toBeInTheDocument()
-    expect(heroGlyph).not.toHaveClass('is-ready')
-
-    fireEvent.canPlay(video as HTMLVideoElement)
-    expect(video).toHaveClass('is-ready')
-    expect(poster).toHaveClass('is-hidden')
-    expect(heroGlyph).toHaveClass('is-ready')
 
     const pauseButton = screen.getByRole('button', { name: 'Pausar animaciones' })
     fireEvent.click(pauseButton)
@@ -149,6 +142,30 @@ describe('NovaLine landing', () => {
     expect(track.style.transform).toBe('translate3d(-1660.000px, 0, 0)')
     fireEvent.pointerUp(marquee, { pointerId: 1, pointerType: 'mouse', clientX: 160 })
     await waitFor(() => expect(ribbon).not.toHaveClass('is-interacting'), { timeout: 2000 })
+  })
+
+  it('permite desplazar el carrusel con un gesto horizontal del panel táctil', () => {
+    vi.useFakeTimers()
+
+    try {
+      const { container } = render(<App />)
+      const ribbon = container.querySelector('.service-ribbon') as HTMLElement
+      const marquee = ribbon.querySelector('.service-ribbon__marquee') as HTMLElement
+      const track = ribbon.querySelector('.service-ribbon__track') as HTMLElement
+      const firstGroup = ribbon.querySelector('.service-ribbon__group') as HTMLElement
+      Object.defineProperty(firstGroup, 'getBoundingClientRect', { configurable: true, value: () => ({ width: 1600 }) })
+      const wheel = new WheelEvent('wheel', { bubbles: true, cancelable: true, deltaX: 180, deltaY: 0 })
+
+      fireEvent(marquee, wheel)
+
+      expect(wheel.defaultPrevented).toBe(true)
+      expect(track.style.transform).toBe('translate3d(-1780.000px, 0, 0)')
+      expect(ribbon).toHaveClass('is-interacting')
+      act(() => vi.advanceTimersByTime(140))
+      expect(ribbon).not.toHaveClass('is-interacting')
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('distingue un clic de un arrastre antes de capturar el puntero', () => {
