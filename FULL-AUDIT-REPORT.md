@@ -80,7 +80,7 @@ Medición Lighthouse de producción durante la auditoría:
 
 Cambios aplicados después de la medición:
 
-- El video de 2,79 MB ya no se solicita durante el render inicial; usa un póster WebP local de 13 KB y comienza a cargar después del primer pintado, con una transición suave al estar listo.
+- El video de 2,79 MB ya no se solicita durante el render inicial; usa un póster WebP local de 15 KB y comienza a cargar después del primer pintado, con una transición suave al estar listo.
 - El video no se carga con ahorro de datos ni con preferencia de movimiento reducido.
 - Google Analytics y Microsoft Clarity conservan su cola de eventos, pero difieren la descarga de sus scripts hasta tiempo ocioso.
 - El marquee deja de leer/escribir layout cuando está pausado, seleccionado, en interacción o fuera del hero.

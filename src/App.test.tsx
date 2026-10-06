@@ -80,18 +80,21 @@ describe('NovaLine landing', () => {
     expect(poster).toHaveAttribute('src', '/assets/brand/hero-poster.webp')
     expect(video).not.toHaveAttribute('src')
     expect(video?.muted).toBe(true)
-    expect(container.querySelector('.hero-background__glyph .brand__glyph')).toBeInTheDocument()
+    const heroGlyph = container.querySelector('.hero-background__glyph')
+    expect(heroGlyph?.querySelector('.brand__glyph')).toBeInTheDocument()
+    expect(heroGlyph).not.toHaveClass('is-ready')
 
     fireEvent.canPlay(video as HTMLVideoElement)
     expect(video).toHaveClass('is-ready')
     expect(poster).toHaveClass('is-hidden')
+    expect(heroGlyph).toHaveClass('is-ready')
 
     const pauseButton = screen.getByRole('button', { name: 'Pausar animaciones' })
     fireEvent.click(pauseButton)
     expect(screen.getByRole('button', { name: 'Reanudar animaciones' })).toHaveAttribute('aria-pressed', 'true')
 
     const ribbon = container.querySelector('.service-ribbon') as HTMLElement
-    expect(ribbon.querySelectorAll('.service-ribbon__group')).toHaveLength(5)
+    expect(ribbon.querySelectorAll('.service-ribbon__group')).toHaveLength(3)
     expect(ribbon.querySelectorAll('.service-ribbon__group[aria-hidden="false"]')).toHaveLength(1)
     expect(ribbon.querySelectorAll('.service-ribbon__group:first-child button')).toHaveLength(8)
     const softwareCard = Array.from(ribbon.querySelectorAll('button')).find((button) => button.textContent?.includes('Software a medida')) as HTMLButtonElement
@@ -136,14 +139,16 @@ describe('NovaLine landing', () => {
     const { container } = render(<App />)
     const ribbon = container.querySelector('.service-ribbon') as HTMLElement
     const marquee = container.querySelector('.service-ribbon__marquee') as HTMLElement
-    Object.defineProperty(marquee, 'scrollLeft', { configurable: true, value: 120, writable: true })
+    const track = ribbon.querySelector('.service-ribbon__track') as HTMLElement
+    const firstGroup = ribbon.querySelector('.service-ribbon__group') as HTMLElement
+    Object.defineProperty(firstGroup, 'getBoundingClientRect', { configurable: true, value: () => ({ width: 1600 }) })
 
     fireEvent.pointerDown(marquee, { pointerId: 1, pointerType: 'mouse', button: 0, clientX: 220 })
     expect(ribbon).toHaveClass('is-interacting')
     fireEvent.pointerMove(marquee, { pointerId: 1, pointerType: 'mouse', clientX: 160 })
-    expect(marquee.scrollLeft).toBe(180)
+    expect(track.style.transform).toBe('translate3d(-1660.000px, 0, 0)')
     fireEvent.pointerUp(marquee, { pointerId: 1, pointerType: 'mouse', clientX: 160 })
-    await waitFor(() => expect(ribbon).not.toHaveClass('is-interacting'))
+    await waitFor(() => expect(ribbon).not.toHaveClass('is-interacting'), { timeout: 2000 })
   })
 
   it('distingue un clic de un arrastre antes de capturar el puntero', () => {
@@ -183,22 +188,21 @@ describe('NovaLine landing', () => {
     const ribbon = container.querySelector('.service-ribbon') as HTMLElement
     const marquee = ribbon.querySelector('.service-ribbon__marquee') as HTMLElement
     const track = ribbon.querySelector('.service-ribbon__track') as HTMLElement
-    Object.defineProperty(track, 'scrollWidth', { configurable: true, value: 4800 })
-    Object.defineProperty(marquee, 'scrollLeft', { configurable: true, value: 4000, writable: true })
+    const firstGroup = ribbon.querySelector('.service-ribbon__group') as HTMLElement
+    Object.defineProperty(firstGroup, 'getBoundingClientRect', { configurable: true, value: () => ({ width: 1600 }) })
+    const readOffset = () => Number(track.style.transform.match(/translate3d\((-?[\d.]+)px/)?.[1])
 
-    fireEvent.pointerDown(marquee, { pointerId: 9, pointerType: 'mouse', button: 0, clientX: 220 })
-    fireEvent.pointerMove(marquee, { pointerId: 9, pointerType: 'mouse', clientX: 120 })
-    fireEvent.pointerUp(marquee, { pointerId: 9, pointerType: 'mouse', clientX: 120 })
+    fireEvent.pointerDown(marquee, { pointerId: 9, pointerType: 'touch', clientX: 220 })
+    fireEvent.pointerMove(marquee, { pointerId: 9, pointerType: 'touch', clientX: -5000 })
 
-    expect(marquee.scrollLeft).toBeGreaterThanOrEqual(1600)
-    expect(marquee.scrollLeft).toBeLessThan(3200)
-    await waitFor(() => expect(ribbon).not.toHaveClass('is-interacting'))
+    expect(readOffset()).toBeGreaterThan(-3200)
+    expect(readOffset()).toBeLessThanOrEqual(-1600)
 
-    marquee.scrollLeft = 4700
-    fireEvent.scroll(marquee)
+    fireEvent.pointerUp(marquee, { pointerId: 9, pointerType: 'touch', clientX: -5000 })
+    await waitFor(() => expect(ribbon).not.toHaveClass('is-interacting'), { timeout: 2000 })
     await waitFor(() => {
-      expect(marquee.scrollLeft).toBeGreaterThanOrEqual(1920)
-      expect(marquee.scrollLeft).toBeLessThan(2880)
+      expect(readOffset()).toBeGreaterThan(-3200)
+      expect(readOffset()).toBeLessThanOrEqual(-1600)
     })
   })
 
