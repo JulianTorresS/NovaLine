@@ -1,3 +1,5 @@
+import { GROWTH_PAGES } from '../src/growth-content'
+
 const SITE_ORIGIN = 'https://novalinesoftware.com'
 
 type MediaRange = {
@@ -20,6 +22,43 @@ const projectLinks = `- [CRM personalizado Fórmula Animal](${SITE_ORIGIN}/proye
 - [Experiencia web Nativhaus](${SITE_ORIGIN}/proyectos/native-haus/)
 - [Sistema POS e inventario NexusPOS](${SITE_ORIGIN}/proyectos/nexus-pos/)
 - [Agente inteligente empresarial Lia](${SITE_ORIGIN}/proyectos/lia/)`
+
+function growthMarkdown(key: keyof typeof GROWTH_PAGES) {
+  const page = GROWTH_PAGES[key]
+  if (!page) return ''
+  const problems = page.problems.map((item) => `- **${item.title}:** ${item.text}`).join('\n')
+  const solutions = page.solutions.map((item) => `- **${item.title}:** ${item.text}`).join('\n')
+  const related = page.related.map((link) => `- [${link.label}](${SITE_ORIGIN}${link.href})`).join('\n')
+  return `# ${page.h1} | NovaLine
+
+> ${page.lead}
+
+## Contexto
+
+${page.intro.join('\n\n')}
+
+## Problemas que resuelve
+
+${problems}
+
+## Soluciones
+
+${solutions}
+
+## Caso relacionado
+
+- [${page.caseStudy.name}](${SITE_ORIGIN}${page.caseStudy.href}): ${page.caseStudy.text}
+
+## Enlaces relacionados
+
+${related}
+
+## Diagnóstico
+
+${page.ctaText} El contacto se inicia mediante el canal público de WhatsApp desde la página HTML; no contactes a NovaLine sin autorización del usuario.
+
+${sharedResources}`
+}
 
 export const AGENT_MARKDOWN_ROUTES: Readonly<Record<string, string>> = {
   '/': `# NovaLine
@@ -76,6 +115,15 @@ ${projectLinks}
 Dirige las solicitudes comerciales a la [página de contacto](${SITE_ORIGIN}/contacto/).
 
 ${sharedResources}`,
+  '/servicios/software-a-la-medida/': growthMarkdown('software-a-la-medida'),
+  '/servicios/desarrollo-crm/': growthMarkdown('desarrollo-crm'),
+  '/servicios/automatizacion-de-procesos/': growthMarkdown('automatizacion-de-procesos'),
+  '/servicios/desarrollo-web/': growthMarkdown('desarrollo-web'),
+  '/servicios/seo-local/': growthMarkdown('seo-local'),
+  '/soluciones/reemplazar-excel/': growthMarkdown('reemplazar-excel'),
+  '/soluciones/digitalizar-pedidos/': growthMarkdown('digitalizar-pedidos'),
+  '/soluciones/automatizar-procesos/': growthMarkdown('automatizar-procesos'),
+  '/soluciones/mejorar-presencia-digital/': growthMarkdown('mejorar-presencia-digital'),
   '/nosotros/': `# Equipo de desarrollo de software en Colombia | NovaLine
 
 > NovaLine entiende, diseña y construye soluciones de software adaptadas a los procesos de cada empresa.

@@ -1,6 +1,7 @@
 import { CSSProperties, MouseEvent as ReactMouseEvent, MouseEventHandler, PointerEvent as ReactPointerEvent, ReactNode, TransitionEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { NAV_ITEMS, PHONE_DEMOS, PROCESS, PROJECTS, SERVICES, SITE, TEAM_MEMBERS, whatsappUrl } from './config'
 import { CASE_ROUTES, normalizePathname, PUBLIC_ROUTES, resolveRoute } from './routes'
+import { GROWTH_PAGES, type GrowthPage } from './growth-content'
 import { applySeoToDocument } from './seo'
 import { useGoogleAnalytics } from './analytics'
 
@@ -185,9 +186,9 @@ function Header({ aboutMode = false, darkHero = false, onAboutBrandChange }: { a
             const independentPage = !item.href.includes('#') && item.sectionId !== 'inicio'
             return <a key={item.href} className={`${active === item.sectionId ? 'is-active' : ''} ${independentPage ? 'nav__page-link' : ''}`.trim()} href={item.href} onClick={(event) => onNavClick(event, item)}>{item.label}</a>
           })}
-          <a className="button button--small nav__mobile-cta" href={whatsappUrl()} target="_blank" rel="noreferrer" data-analytics-cta="quote_project"><WhatsAppIcon /> Cotizar proyecto</a>
+          <a className="button button--small nav__mobile-cta" href={whatsappUrl('Hola, quiero solicitar el Diagnóstico Digital gratuito de NovaLine para mi negocio.')} target="_blank" rel="noreferrer" data-analytics-cta="diagnostic_nav"><WhatsAppIcon /> Solicitar diagnóstico</a>
         </nav>
-        <a className="button button--small header__cta" href={whatsappUrl()} target="_blank" rel="noreferrer" data-analytics-cta="quote_project">Cotizar proyecto <Icon name="arrow" /></a>
+        <a className="button button--small header__cta" href={whatsappUrl('Hola, quiero solicitar el Diagnóstico Digital gratuito de NovaLine para mi negocio.')} target="_blank" rel="noreferrer" data-analytics-cta="diagnostic_header">Solicitar diagnóstico <Icon name="arrow" /></a>
         <button className="menu-button" type="button" aria-label={open ? 'Cerrar menú' : 'Abrir menú'} aria-expanded={open} onClick={() => setOpen((value) => !value)}>
           <Icon name={open ? 'x' : 'menu'} size={23} />
         </button>
@@ -644,7 +645,7 @@ function ServiceRibbon({ paused }: { paused: boolean }) {
   return (
     <section className={`service-ribbon ${paused ? 'is-paused' : ''} ${selected !== null ? 'has-detail' : ''} ${interacting ? 'is-interacting' : ''}`} aria-label="Servicios destacados de NovaLine">
       <h2 className="sr-only">Servicios de NovaLine</h2>
-      <div ref={marqueeRef} className="service-ribbon__marquee" aria-label="Desliza para explorar los servicios" onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={finishInteraction} onPointerCancel={finishInteraction} onClickCapture={onMarqueeClick}>
+      <div ref={marqueeRef} className="service-ribbon__marquee" role="group" aria-label="Desliza para explorar los servicios" onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={finishInteraction} onPointerCancel={finishInteraction} onClickCapture={onMarqueeClick}>
         <div ref={trackRef} className="service-ribbon__track">
           {Array.from({ length: SERVICE_RIBBON_COPIES }, (_, copy) => (
             <div ref={copy === 0 ? firstGroupRef : undefined} className="service-ribbon__group" aria-hidden={copy !== SERVICE_RIBBON_CENTER_COPY} key={copy}>
@@ -678,14 +679,14 @@ function Hero() {
         <HeroBackground paused={animationsPaused}/>
         <div className="shell hero-reference__content">
           <div className="hero-copy hero-reference__copy">
-            <span className="hero-reference__eyebrow">Software a la medida para empresas</span>
-            <h1>Software a la medida que entiende cómo funciona tu empresa.</h1>
-            <p>Desarrollamos software a la medida para empresas en Colombia: aplicaciones web y sistemas que ordenan la operación, automatizan procesos y facilitan el crecimiento.</p>
+            <span className="hero-reference__eyebrow">Soluciones digitales para empresas</span>
+            <h1>Software y tecnología para hacer crecer tu empresa</h1>
+            <p>Desarrollamos software a la medida, CRM, automatizaciones y soluciones web que ayudan a empresas a reducir tareas manuales, organizar sus procesos y conseguir más clientes.</p>
             <div className="hero-copy__actions">
-              <a className="button" href={whatsappUrl()} target="_blank" rel="noreferrer" data-analytics-cta="discuss_project">Cuéntanos qué necesitas <Icon name="arrow"/></a>
+              <a className="button" href={whatsappUrl('Hola, quiero solicitar el Diagnóstico Digital gratuito de NovaLine para mi negocio.')} target="_blank" rel="noreferrer" data-analytics-cta="hero_diagnostic">Solicitar diagnóstico gratuito <Icon name="arrow"/></a>
               <a className="text-link" href="/#proyectos">Ver proyectos <span className="text-link__arrow" aria-hidden="true">↓</span></a>
             </div>
-            <div className="hero-proof"><span><Icon name="check"/> Alcance claro</span><span><Icon name="check"/> Entregas por etapas</span><span><Icon name="check"/> Soporte cercano</span></div>
+            <p className="hero-diagnostic-note"><Icon name="check"/> Analizamos tu negocio y te mostramos oportunidades de digitalización sin compromiso.</p>
           </div>
           <button className="hero-motion-toggle" type="button" aria-pressed={manuallyPaused} aria-label={manuallyPaused ? 'Reanudar animaciones' : 'Pausar animaciones'} title={manuallyPaused ? 'Reanudar animaciones' : 'Pausar animaciones'} onClick={() => setManuallyPaused((value) => !value)}>
             {manuallyPaused ? <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 7 8 5-8 5V7Z"/></svg> : <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M8 7v10M16 7v10"/></svg>}
@@ -706,9 +707,75 @@ function ProcessSection() {
   return (
     <section id="proceso" className="section process-section">
       <div className="shell">
-        <SectionIntro marker="Nuestro proceso" title="Cuatro decisiones claras antes de cada entrega." text="Sabes qué estamos construyendo, por qué y qué sigue. Sin cajas negras ni sorpresas al final." />
+        <SectionIntro marker="Cómo trabajamos" title="De entender el negocio a acompañar la implementación." text="Cada etapa reduce incertidumbre y mantiene las decisiones conectadas con el problema que necesitas resolver." />
         <div className="process-list">
           {PROCESS.map((step, index) => <article className="process-card" key={step.number}><span className="process-card__number">{step.number}</span><div><h3>{step.title}</h3><p>{step.text}</p></div>{index < PROCESS.length - 1 && <span className="process-card__connector" aria-hidden="true"/>}</article>)}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+const BUSINESS_PROBLEMS = [
+  { title: 'Control de información en Excel', text: 'Los archivos se duplican, cambian sin trazabilidad y obligan a consolidar datos antes de decidir.', href: '/soluciones/reemplazar-excel/' },
+  { title: 'Pedidos gestionados por WhatsApp', text: 'Las solicitudes, cambios y comprobantes quedan repartidos entre conversaciones difíciles de seguir.', href: '/soluciones/digitalizar-pedidos/' },
+  { title: 'Información en diferentes herramientas', text: 'El equipo copia datos entre plataformas y pierde contexto cada vez que el proceso cambia de área.', href: '/servicios/software-a-la-medida/' },
+  { title: 'Procesos repetitivos que consumen tiempo', text: 'Personas capacitadas dedican horas a validar, copiar, avisar o preparar resultados predecibles.', href: '/soluciones/automatizar-procesos/' },
+  { title: 'Negocio con poca visibilidad en Google', text: 'Los clientes no encuentran información clara, consistente y útil para elegir una forma de contacto.', href: '/servicios/seo-local/' },
+  { title: 'Página web desactualizada o inexistente', text: 'La presencia digital no explica los servicios actuales ni convierte el interés en una conversación.', href: '/soluciones/mejorar-presencia-digital/' },
+]
+
+const SOLUTION_GROUPS = [
+  {
+    number: '01',
+    title: 'Presencia digital',
+    text: 'Para empresas que quieren conseguir más visibilidad y clientes en internet.',
+    items: [
+      { label: 'Desarrollo web', href: '/servicios/desarrollo-web/' },
+      { label: 'SEO local y Google Business', href: '/servicios/seo-local/' },
+      { label: 'Optimización de presencia digital', href: '/soluciones/mejorar-presencia-digital/' },
+    ],
+  },
+  {
+    number: '02',
+    title: 'Digitalización de procesos',
+    text: 'Para empresas que todavía dependen de Excel, WhatsApp o procesos manuales.',
+    items: [
+      { label: 'Software a la medida', href: '/servicios/software-a-la-medida/' },
+      { label: 'CRM personalizados', href: '/servicios/desarrollo-crm/' },
+      { label: 'Pedidos, inventarios y dashboards', href: '/soluciones/digitalizar-pedidos/' },
+    ],
+  },
+  {
+    number: '03',
+    title: 'Automatización',
+    text: 'Para empresas que quieren ahorrar tiempo y conectar sus herramientas.',
+    items: [
+      { label: 'Automatización de procesos', href: '/servicios/automatizacion-de-procesos/' },
+      { label: 'Integraciones y APIs', href: '/servicios/automatizacion-de-procesos/' },
+      { label: 'Inteligencia artificial aplicada', href: '/soluciones/automatizar-procesos/' },
+    ],
+  },
+]
+
+function ProblemsSection() {
+  return (
+    <section className="section problems-section" aria-label="Problemas empresariales que NovaLine ayuda a resolver">
+      <div className="shell">
+        <SectionIntro marker="Fricciones que frenan" title="¿Tu empresa todavía trabaja así?" text="Estos problemas suelen crecer en silencio: consumen tiempo, repiten información y hacen más difícil atender a cada cliente." />
+        <div className="problems-grid">
+          {BUSINESS_PROBLEMS.map((problem, index) => (
+            <a className="problem-card" href={problem.href} key={problem.title}>
+              <span>0{index + 1}</span>
+              <h3>{problem.title}</h3>
+              <p>{problem.text}</p>
+              <strong>Explorar solución <Icon name="arrow" size={16}/></strong>
+            </a>
+          ))}
+        </div>
+        <div className="problems-conclusion">
+          <p>Podemos ayudarte a convertir estos procesos en soluciones digitales.</p>
+          <a className="button" href={whatsappUrl('Hola, quiero analizar los procesos de mi negocio y conocer oportunidades de digitalización.')} target="_blank" rel="noreferrer" data-analytics-cta="problems_diagnostic">Quiero analizar mi negocio <Icon name="arrow"/></a>
         </div>
       </div>
     </section>
@@ -719,21 +786,73 @@ function ServicesSection() {
   return (
     <section id="servicios" className="section services-section" aria-label="Servicios de desarrollo de NovaLine">
       <div className="shell">
-        <SectionIntro marker="Lo que hacemos" title="Tecnología útil, diseñada alrededor del trabajo real." />
-        <div className="services-grid">
-          {SERVICES.map((service, index) => (
-            <article className={`service-card service-card--${index + 1}`} key={service.title}>
-              <div className="service-card__icon"><Icon name={service.icon as IconName} size={25}/></div>
-              <span className="service-card__index">0{index + 1}</span>
-              <h3>{service.title}</h3>
-              <p>{service.summary}</p>
-              <div className="service-card__links">
-                <a href={whatsappUrl(`Hola, ${service.link.toLowerCase()}.`)} target="_blank" rel="noreferrer">{service.link} <Icon name="arrow"/></a>
-              </div>
+        <SectionIntro marker="Soluciones" title="Tres formas de mejorar cómo opera y crece tu empresa." text="El punto de partida puede ser conseguir más visibilidad, organizar un proceso propio o eliminar tareas que ya no necesitan hacerse a mano." />
+        <div className="solution-groups">
+          {SOLUTION_GROUPS.map((group) => (
+            <article className="solution-group" key={group.title}>
+              <span>{group.number}</span>
+              <h3>{group.title}</h3>
+              <p>{group.text}</p>
+              <ul>
+                {group.items.map((item) => <li key={item.label}><a href={item.href}>{item.label}<Icon name="arrow" size={15}/></a></li>)}
+              </ul>
             </article>
           ))}
         </div>
-        <a className="section-link" href="/servicios/">Conocer nuestros servicios de desarrollo <Icon name="arrow"/></a>
+        <a className="section-link" href="/servicios/">Ver todos los servicios y nuestra forma de trabajo <Icon name="arrow"/></a>
+      </div>
+    </section>
+  )
+}
+
+const DIAGNOSTIC_AREAS = ['Presencia en Google', 'Página web', 'Google Maps', 'WhatsApp', 'Gestión de clientes', 'Inventarios', 'Pedidos', 'Uso de Excel', 'Procesos manuales', 'Automatizaciones posibles']
+
+function DiagnosticSection() {
+  return (
+    <section className="section diagnostic-section" aria-labelledby="diagnostic-title">
+      <div className="shell diagnostic-section__grid">
+        <div className="diagnostic-section__copy">
+          <span className="section-kicker">Diagnóstico Digital NovaLine</span>
+          <h2 id="diagnostic-title">Descubre qué puedes mejorar en tu negocio</h2>
+          <p>Realizamos un diagnóstico digital gratuito donde analizamos cómo tu empresa utiliza actualmente la tecnología y detectamos oportunidades para ahorrar tiempo, organizar procesos y mejorar tu presencia digital.</p>
+          <a className="button button--whatsapp" href={whatsappUrl('Hola, quiero solicitar el Diagnóstico Digital gratuito de NovaLine para mi negocio.')} target="_blank" rel="noreferrer" data-analytics-cta="digital_diagnostic"><WhatsAppIcon/> Solicitar diagnóstico gratuito</a>
+          <small>Sin compromiso. Empezamos por comprender cómo funciona hoy tu negocio.</small>
+        </div>
+        <div className="diagnostic-section__areas" role="group" aria-label="Aspectos incluidos en el diagnóstico">
+          <span>Qué analizamos</span>
+          <ul>{DIAGNOSTIC_AREAS.map((area) => <li key={area}><Icon name="check" size={17}/>{area}</li>)}</ul>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+const NOVALINE_REASONS = [
+  { title: 'Soluciones personalizadas', text: 'La herramienta se adapta al proceso y a los roles reales, no al revés.' },
+  { title: 'Tecnología moderna y responsable', text: 'Elegimos una base mantenible sin añadir complejidad que el proyecto no necesita.' },
+  { title: 'Acompañamiento directo', text: 'Conversas con el equipo que entiende, diseña y construye la solución.' },
+  { title: 'Procesos antes que funciones', text: 'Cada pantalla responde a una decisión, una tarea o un resultado empresarial.' },
+  { title: 'Experiencia en proyectos empresariales', text: 'Los casos publicados muestran CRM, ERP, experiencias web y automatización.' },
+  { title: 'Soporte después de implementar', text: 'Acompañamos la adopción y la evolución cuando cambian las prioridades.' },
+]
+
+function WhyNovaLineSection() {
+  return (
+    <section className="section why-section" aria-labelledby="why-title">
+      <div className="shell why-section__grid">
+        <div><span className="section-kicker">Por qué NovaLine</span><h2 id="why-title">Tecnología conectada con el trabajo real.</h2><p>No empezamos por una plataforma o una tendencia. Empezamos por entender qué debe funcionar mejor y cómo comprobar que la solución aporta valor.</p></div>
+        <div className="why-list">{NOVALINE_REASONS.map((reason, index) => <article key={reason.title}><span>0{index + 1}</span><div><h3>{reason.title}</h3><p>{reason.text}</p></div></article>)}</div>
+      </div>
+    </section>
+  )
+}
+
+function FinalDiagnosticCta() {
+  return (
+    <section id="contacto" className="final-diagnostic">
+      <div className="shell final-diagnostic__inner">
+        <div><span>Conversemos sobre tu operación</span><h2>¿Hay procesos en tu empresa que todavía haces manualmente?</h2><p>Cuéntanos cómo funciona tu negocio y te mostramos qué se puede mejorar con tecnología.</p></div>
+        <a className="button button--whatsapp" href={whatsappUrl('Hola, quiero solicitar el Diagnóstico Digital gratuito de NovaLine para mi negocio.')} target="_blank" rel="noreferrer" data-analytics-cta="final_diagnostic"><WhatsAppIcon/> Solicitar diagnóstico gratuito</a>
       </div>
     </section>
   )
@@ -980,7 +1099,7 @@ function ProjectsSection({ onOpenCase }: { onOpenCase: (slug: CaseSlug) => void 
     <section ref={systemPause.ref} id="proyectos" className="section projects-section" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onFocus={() => setPaused(true)} onBlur={() => setPaused(false)} onTouchStart={(event) => touchStart.current = event.touches[0].clientX} onTouchEnd={(event) => { if (touchStart.current !== null && Math.abs(event.changedTouches[0].clientX - touchStart.current) > 40) next(event.changedTouches[0].clientX < touchStart.current ? 1 : -1); touchStart.current = null }}>
       <div className="shell">
         <div className="projects-heading">
-          <SectionIntro marker="Trabajo seleccionado" title="Productos digitales que ya trabajan para negocios reales." text="Casos como Lia, NexusPOS, Fórmula Animal y Nativhaus muestran cómo conectamos operación, experiencia y resultados comerciales." />
+          <SectionIntro marker="Casos de éxito" title="Problemas reales convertidos en soluciones que ya están trabajando." text="Conoce el punto de partida, la solución desarrollada y el resultado operativo de Fórmula Animal, NexusPOS, Nativhaus y Lia." />
           <div className="carousel-buttons"><button type="button" aria-label="Proyectos anteriores" onClick={() => next(-1)}><Icon name="chevronLeft"/></button><button type="button" aria-label="Proyectos siguientes" onClick={() => next(1)}><Icon name="chevronRight"/></button></div>
         </div>
         <div className="projects-viewport">
@@ -990,7 +1109,20 @@ function ProjectsSection({ onOpenCase }: { onOpenCase: (slug: CaseSlug) => void 
               return (
                 <article className={`project-card ${project.featured ? 'project-card--featured' : ''}`} key={`${project.name}-${renderedIndex}`} aria-hidden={hiddenClone}>
                   <ProjectVisual project={project} index={originalIndex}/>
-                  <div className="project-card__content"><div className="project-card__top"><span>{project.category}</span><b>{project.name}</b></div>{hiddenClone ? <div className="project-card__title">{project.title}</div> : <h3>{project.title}</h3>}<div className="project-card__metric"><strong>{project.metric}</strong><span>{project.metricLabel}</span></div><div className="tags">{project.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>{project.featured && <span className="project-card__action">Ver caso {project.name} <Icon name="arrow" size={16}/></span>}</div>
+                  <div className="project-card__content">
+                    <div className="project-card__top"><span>{project.category}</span><b>{project.name}</b></div>
+                    {hiddenClone ? <div className="project-card__title">{project.title}</div> : <h3>{project.title}</h3>}
+                    <div className="project-card__journey">
+                      <p><strong>Problema</strong>{project.problem}</p>
+                      <span aria-hidden="true">↓</span>
+                      <p><strong>Solución</strong>{project.solution}</p>
+                      <span aria-hidden="true">↓</span>
+                      <p><strong>Resultado</strong>{project.result}</p>
+                    </div>
+                    <div className="project-card__metric"><strong>{project.metric}</strong><span>{project.metricLabel}</span></div>
+                    <div className="tags">{project.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>
+                    {project.featured && <span className="project-card__action">Ver caso completo <Icon name="arrow" size={16}/></span>}
+                  </div>
                   {project.caseStudy && (
                     <a className="project-card__open" href={CASE_ROUTES[project.caseStudy as CaseSlug]} tabIndex={hiddenClone ? -1 : 0} aria-label={`Ver caso real de ${project.name}`} onClick={(event) => { event.preventDefault(); onOpenCase(project.caseStudy as CaseSlug) }}/>
                   )}
@@ -1083,6 +1215,35 @@ const CRM_VIEWS = [
   },
 ]
 
+function CaseFacts({ client, sector, problem, situation, solution, technologies, result, serviceHref, serviceLabel }: {
+  client: string
+  sector: string
+  problem: string
+  situation: string
+  solution: string
+  technologies: string
+  result: string
+  serviceHref: string
+  serviceLabel: string
+}) {
+  return (
+    <section className="case-facts" aria-label={`Resumen del caso ${client}`}>
+      <div className="shell">
+        <dl>
+          <div><dt>Cliente</dt><dd>{client}</dd></div>
+          <div><dt>Sector</dt><dd>{sector}</dd></div>
+          <div><dt>Problema</dt><dd>{problem}</dd></div>
+          <div><dt>Situación inicial</dt><dd>{situation}</dd></div>
+          <div><dt>Solución desarrollada</dt><dd>{solution}</dd></div>
+          <div><dt>Tecnologías</dt><dd>{technologies}</dd></div>
+          <div><dt>Resultado</dt><dd>{result}</dd></div>
+        </dl>
+        <a href={serviceHref}>{serviceLabel}<Icon name="arrow" size={16}/></a>
+      </div>
+    </section>
+  )
+}
+
 function FormulaAnimalCaseStudy({ onClose }: { onClose: () => void }) {
   const [view, setView] = useState(0)
   const [expandedImage, setExpandedImage] = useState<{ src: string; alt: string } | null>(null)
@@ -1133,6 +1294,18 @@ function FormulaAnimalCaseStudy({ onClose }: { onClose: () => void }) {
           </div>
         </div>
       </section>
+
+      <CaseFacts
+        client="Fórmula Animal"
+        sector="Operación veterinaria y fórmulas magistrales"
+        problem="La información del pedido debía acompañar decisiones comerciales, logísticas, de calidad y facturación sin perder trazabilidad."
+        situation="La operación estaba distribuida entre diferentes procesos y herramientas, con datos que cambiaban de manos durante el recorrido."
+        solution="CRM personalizado con más de 15 módulos conectados para gestionar pedidos, clientes, logística, calidad y facturación."
+        technologies="Aplicación web empresarial, gestión por roles, módulos conectados y automatización del flujo de pedidos."
+        result="Una operación centralizada en una única plataforma donde cada área consulta la historia del mismo pedido."
+        serviceHref="/servicios/desarrollo-crm/"
+        serviceLabel="Conocer el servicio de desarrollo CRM"
+      />
 
       <section className="case-story">
         <div className="shell case-story__grid">
@@ -1185,7 +1358,7 @@ function FormulaAnimalCaseStudy({ onClose }: { onClose: () => void }) {
       <section className="case-result">
         <div className="shell case-result__inner">
           <div><span className="case-index">La idea detrás del sistema</span><h2>No digitalizamos pantallas. Conectamos decisiones.</h2></div>
-          <p>Fórmula Animal muestra cómo una herramienta a medida puede reflejar una operación compleja sin obligar al equipo a trabajar alrededor del software. <a href="/servicios/">Conoce nuestros servicios de software a medida.</a></p>
+          <p>Fórmula Animal muestra cómo una herramienta a medida puede reflejar una operación compleja sin obligar al equipo a trabajar alrededor del software. <a href="/servicios/software-a-la-medida/">Conoce el desarrollo de software a la medida</a> y <a href="/soluciones/digitalizar-pedidos/">cómo digitalizamos pedidos</a>.</p>
           <a className="button" href={whatsappUrl('Hola, vi el caso del CRM Fórmula Animal y quiero conversar sobre un sistema para mi empresa.')} target="_blank" rel="noreferrer" data-analytics-cta="build_similar_formula_animal">Quiero construir algo así <Icon name="arrow"/></a>
         </div>
       </section>
@@ -1274,6 +1447,18 @@ function NativeHausCaseStudy({ onClose }: { onClose: () => void }) {
         </div>
       </section>
 
+      <CaseFacts
+        client="Nativhaus"
+        sector="Mobiliario y comercio digital"
+        problem="El portafolio necesitaba presentarse con claridad y convertir la exploración de productos en una solicitud contextual."
+        situation="La variedad de estilos, productos y opciones podía sentirse dispersa si el visitante no encontraba una ruta de entrada comprensible."
+        solution="Experiencia web responsive con catálogo, universos visuales, cotización a medida y contacto por WhatsApp relacionado con cada interés."
+        technologies="Sitio web responsive, catálogo digital, navegación temática y enlaces de conversión contextuales."
+        result="Veinticuatro productos conectados con una vitrina digital que acompaña el descubrimiento y la cotización."
+        serviceHref="/servicios/desarrollo-web/"
+        serviceLabel="Conocer el servicio de desarrollo web"
+      />
+
       <section className="case-story">
         <div className="shell case-story__grid">
           <figure className="case-shot case-shot--tilted">
@@ -1325,7 +1510,7 @@ function NativeHausCaseStudy({ onClose }: { onClose: () => void }) {
       <section className="case-result">
         <div className="shell case-result__inner">
           <div><span className="case-index">El resultado</span><h2>Una presencia digital tan funcional como los muebles que presenta.</h2></div>
-          <p>Nativhaus reúne identidad, catálogo y asesoría en una experiencia responsive pensada para vender productos terminados y captar solicitudes personalizadas. <a href="/servicios/">Conoce nuestros servicios de experiencias web.</a></p>
+          <p>Nativhaus reúne identidad, catálogo y asesoría en una experiencia responsive pensada para vender productos terminados y captar solicitudes personalizadas. <a href="/servicios/desarrollo-web/">Conoce el desarrollo web</a> y <a href="/soluciones/mejorar-presencia-digital/">cómo mejoramos la presencia digital</a>.</p>
           <a className="button" href={whatsappUrl('Hola, vi el caso de Nativhaus y quiero conversar sobre una landing comercial para mi empresa.')} target="_blank" rel="noreferrer" data-analytics-cta="build_similar_native_haus">Quiero una landing así <Icon name="arrow"/></a>
         </div>
       </section>
@@ -1417,6 +1602,18 @@ function NexusPosCaseStudy({ onClose }: { onClose: () => void }) {
         </div>
       </section>
 
+      <CaseFacts
+        client="NexusPOS"
+        sector="Comercio y punto de venta"
+        problem="Cada venta debía actualizar y relacionar información comercial, inventario, clientes, caja y domicilios."
+        situation="Las tareas posteriores al cobro necesitaban continuidad para evitar registros separados y mantener visible la operación diaria."
+        solution="Sistema POS con diez módulos de negocio para ventas, inventario, clientes, caja, domicilios y reportes."
+        technologies="Aplicación web empresarial, módulos transaccionales, paneles operativos y gestión conectada de inventario."
+        result="Una operación comercial trazable donde la venta alimenta los procesos que ocurren después."
+        serviceHref="/servicios/software-a-la-medida/"
+        serviceLabel="Conocer el servicio de software a la medida"
+      />
+
       <section className="case-story">
         <div className="shell case-story__grid">
           <figure className="case-shot case-shot--tilted">
@@ -1468,7 +1665,7 @@ function NexusPosCaseStudy({ onClose }: { onClose: () => void }) {
       <section className="case-result">
         <div className="shell case-result__inner">
           <div><span className="case-index">El resultado</span><h2>Un ERP que acompaña la venta y también todo lo que ocurre después.</h2></div>
-          <p>NexusPOS convierte actividades dispersas en una operación comercial trazable, preparada para atender, controlar y crecer desde una sola plataforma. <a href="/servicios/">Conoce nuestros servicios de software empresarial.</a></p>
+          <p>NexusPOS convierte actividades dispersas en una operación comercial trazable, preparada para atender, controlar y crecer desde una sola plataforma. <a href="/servicios/software-a-la-medida/">Conoce el software a la medida</a> y <a href="/soluciones/reemplazar-excel/">cuándo conviene reemplazar Excel</a>.</p>
           <a className="button" href={whatsappUrl('Hola, vi el caso de NexusPOS y quiero conversar sobre un ERP comercial para mi negocio.')} target="_blank" rel="noreferrer" data-analytics-cta="build_similar_nexus_pos">Quiero un ERP así <Icon name="arrow"/></a>
         </div>
       </section>
@@ -1561,6 +1758,18 @@ function LiaCaseStudy({ onClose }: { onClose: () => void }) {
         </div>
       </section>
 
+      <CaseFacts
+        client="Lia"
+        sector="Inteligencia artificial y automatización empresarial"
+        problem="Consultar información y ejecutar acciones exigía cambiar entre documentos, herramientas y tareas separadas."
+        situation="El equipo necesitaba una interfaz que conservara contexto desde la pregunta inicial hasta una acción o resultado útil."
+        solution="Agente empresarial con capacidades de consulta, análisis, estrategia y ejecución asistida dentro de una misma experiencia."
+        technologies="Interfaz conversacional, consulta de información, análisis asistido y flujos de automatización supervisados."
+        result="Cuatro capacidades conectadas para avanzar desde el análisis hasta la ejecución sin perder el criterio humano."
+        serviceHref="/servicios/automatizacion-de-procesos/"
+        serviceLabel="Conocer el servicio de automatización"
+      />
+
       <section className="case-story">
         <div className="shell case-story__grid">
           <figure className="case-shot case-shot--tilted">
@@ -1612,7 +1821,7 @@ function LiaCaseStudy({ onClose }: { onClose: () => void }) {
       <section className="case-result">
         <div className="shell case-result__inner">
           <div><span className="case-index">El resultado</span><h2>Una nueva forma de automatizar procesos sin perder el criterio humano.</h2></div>
-          <p>Lia concentra información y tareas repetitivas en una experiencia conversacional, para que cada equipo dedique menos tiempo a buscar y más tiempo a decidir. <a href="/servicios/">Conoce nuestros servicios de automatización.</a></p>
+          <p>Lia concentra información y tareas repetitivas en una experiencia conversacional, para que cada equipo dedique menos tiempo a buscar y más tiempo a decidir. <a href="/servicios/automatizacion-de-procesos/">Conoce nuestro servicio de automatización</a> y <a href="/soluciones/automatizar-procesos/">qué procesos manuales conviene automatizar</a>.</p>
           <a className="button" href={whatsappUrl('Hola, vi el caso de Lia y quiero conversar sobre un agente inteligente para automatizar procesos en mi empresa.')} target="_blank" rel="noreferrer" data-analytics-cta="build_similar_lia">Quiero un agente así <Icon name="arrow"/></a>
         </div>
       </section>
@@ -1733,6 +1942,103 @@ function Footer() {
   return <footer className="footer"><div className="shell footer__inner"><Brand/><div className="footer__nav">{NAV_ITEMS.map((item) => <a href={item.href} key={item.href}>{item.label}</a>)}</div><div className="footer__meta"><div className="footer__trust"><a href="/contacto/">Contacto</a><a href="/privacidad/">Privacidad</a></div><span>© {new Date().getFullYear()} NovaLine</span></div></div></footer>
 }
 
+function GrowthPageView({ page }: { page: GrowthPage }) {
+  const parentHref = page.kind === 'service' ? '/servicios/' : '/#servicios'
+  const parentLabel = page.kind === 'service' ? 'Servicios' : 'Soluciones'
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'auto' })
+  }, [page.h1])
+
+  return (
+    <div className="growth-page">
+      <Header darkHero />
+      <main>
+        <section className="growth-hero">
+          <div className="shell growth-hero__inner">
+            <nav className="breadcrumbs" aria-label="Migas de pan"><a href="/">Inicio</a><span>/</span><a href={parentHref}>{parentLabel}</a><span>/</span><span aria-current="page">{page.h1.replace(/^¿|\?$/g, '')}</span></nav>
+            <span className="growth-page__eyebrow">{page.kicker}</span>
+            <h1>{page.h1}</h1>
+            <p>{page.lead}</p>
+            <div className="growth-hero__actions">
+              <a className="button" href={whatsappUrl(page.whatsappMessage)} target="_blank" rel="noreferrer" data-analytics-cta={`growth_hero_${page.kind}`}>{page.ctaLabel}<Icon name="arrow"/></a>
+              <a className="text-link" href={page.caseStudy.href}>{page.caseStudy.label}<Icon name="arrow" size={16}/></a>
+            </div>
+          </div>
+        </section>
+
+        <section className="growth-intro">
+          <div className="shell growth-intro__grid">
+            <span>{page.kind === 'service' ? 'Una solución con contexto' : 'El punto de partida'}</span>
+            <div>{page.intro.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}</div>
+          </div>
+        </section>
+
+        <section className="growth-section growth-section--soft">
+          <div className="shell">
+            <div className="growth-heading"><span>Problemas que resolvemos</span><h2>{page.problemsTitle}</h2><p>{page.problemsIntro}</p></div>
+            <div className="growth-card-grid growth-card-grid--problems">{page.problems.map((item, index) => <article key={item.title}><span>0{index + 1}</span><h3>{item.title}</h3><p>{item.text}</p></article>)}</div>
+          </div>
+        </section>
+
+        <section className="growth-section">
+          <div className="shell growth-audience">
+            <div className="growth-heading"><span>Para quién sirve</span><h2>{page.audienceTitle}</h2><p>{page.audienceIntro}</p></div>
+            <div className="growth-audience__list">{page.audience.map((item) => <article key={item.title}><Icon name="check" size={18}/><div><h3>{item.title}</h3><p>{item.text}</p></div></article>)}</div>
+          </div>
+        </section>
+
+        <section className="growth-section growth-section--dark">
+          <div className="shell">
+            <div className="growth-heading"><span>Solución</span><h2>{page.solutionsTitle}</h2><p>{page.solutionsIntro}</p></div>
+            <div className="growth-solution-grid">{page.solutions.map((item, index) => <article key={item.title}><span>0{index + 1}</span><h3>{item.title}</h3><p>{item.text}</p></article>)}</div>
+          </div>
+        </section>
+
+        <section className="growth-section">
+          <div className="shell">
+            <div className="growth-heading growth-heading--center"><span>Beneficios</span><h2>{page.benefitsTitle}</h2></div>
+            <div className="growth-benefits">{page.benefits.map((item) => <article key={item.title}><Icon name="check" size={19}/><h3>{item.title}</h3><p>{item.text}</p></article>)}</div>
+          </div>
+        </section>
+
+        <section className="growth-section growth-section--soft">
+          <div className="shell">
+            <div className="growth-heading"><span>Proceso de trabajo</span><h2>{page.processTitle}</h2><p>{page.processIntro}</p></div>
+            <ol className="growth-process">{page.process.map((item, index) => <li key={item.title}><span>{String(index + 1).padStart(2, '0')}</span><div><h3>{item.title}</h3><p>{item.text}</p></div></li>)}</ol>
+          </div>
+        </section>
+
+        <section className="growth-section growth-case">
+          <div className="shell growth-case__inner">
+            <div><span>Caso relacionado</span><h2>{page.caseStudy.name}</h2><p>{page.caseStudy.text}</p></div>
+            <a className="button button--outline" href={page.caseStudy.href}>{page.caseStudy.label}<Icon name="arrow"/></a>
+          </div>
+        </section>
+
+        <section className="growth-section growth-faq">
+          <div className="shell growth-faq__grid">
+            <div className="growth-heading"><span>Preguntas frecuentes</span><h2>Antes de tomar una decisión</h2><p>Estas respuestas orientan la primera conversación. El diagnóstico aterriza cada punto al proceso y las herramientas de tu empresa.</p></div>
+            <div className="growth-faq__items">{page.faqs.map((item) => <details key={item.title}><summary>{item.title}<span>+</span></summary><p>{item.text}</p></details>)}</div>
+          </div>
+        </section>
+
+        <section className="growth-related">
+          <div className="shell"><span>También puede interesarte</span><div>{page.related.map((link) => <a href={link.href} key={link.href}>{link.label}<Icon name="arrow" size={16}/></a>)}</div></div>
+        </section>
+
+        <section className="growth-cta">
+          <div className="shell growth-cta__inner">
+            <div><span>Diagnóstico inicial</span><h2>{page.ctaTitle}</h2><p>{page.ctaText}</p></div>
+            <a className="button button--whatsapp" href={whatsappUrl(page.whatsappMessage)} target="_blank" rel="noreferrer" data-analytics-cta={`growth_closing_${page.kind}`}><WhatsAppIcon/>{page.ctaLabel}</a>
+          </div>
+        </section>
+      </main>
+      <Footer />
+    </div>
+  )
+}
+
 function ServicesPage() {
   const [demoIndex, setDemoIndex] = useState(0)
   const softwarePause = useSystemPause<HTMLElement>()
@@ -1786,6 +2092,7 @@ function ServicesPage() {
               </ul>
               <div className="service-story__actions">
                 <a className="button" href={whatsappUrl('Hola, quiero conversar sobre software a la medida para mi empresa.')} target="_blank" rel="noreferrer" data-analytics-cta="services_page_custom_software">Quiero una solución <Icon name="arrow"/></a>
+                <a className="text-link" href="/servicios/software-a-la-medida/">Ver servicio <span className="text-link__arrow" aria-hidden="true">→</span></a>
                 <a className="text-link" href={SERVICES[0].caseHref} aria-label={SERVICES[0].caseLabel}>Ver caso real <span className="text-link__arrow" aria-hidden="true">→</span></a>
               </div>
             </div>
@@ -1809,6 +2116,7 @@ function ServicesPage() {
               </ul>
               <div className="service-story__actions">
                 <a className="button" href={whatsappUrl('Hola, quiero crear una experiencia web clara y mejorar la visibilidad local de mi negocio.')} target="_blank" rel="noreferrer" data-analytics-cta="services_page_web_experience">Hablemos de la experiencia <Icon name="arrow"/></a>
+                <a className="text-link" href="/servicios/desarrollo-web/">Ver desarrollo web <span className="text-link__arrow" aria-hidden="true">→</span></a>
                 <a className="text-link" href={SERVICES[1].caseHref} aria-label={SERVICES[1].caseLabel}>Ver caso real <span className="text-link__arrow" aria-hidden="true">→</span></a>
               </div>
             </div>
@@ -1830,6 +2138,7 @@ function ServicesPage() {
                 <p>Conectamos tareas, documentos y estados para reducir trabajo manual. Después del lanzamiento seguimos cerca para mantener y evolucionar cada solución.</p>
                 <div className="service-story__actions">
                   <a className="button" href={whatsappUrl('Hola, quiero automatizar procesos y recibir acompañamiento técnico para mi empresa.')} target="_blank" rel="noreferrer" data-analytics-cta="services_page_automation">Automatizar un proceso <Icon name="arrow"/></a>
+                  <a className="text-link" href="/servicios/automatizacion-de-procesos/">Ver servicio de automatización <span className="text-link__arrow" aria-hidden="true">→</span></a>
                 </div>
               </div>
             </div>
@@ -1912,6 +2221,7 @@ export default function App({ initialPath }: { initialPath?: string }) {
   useGoogleAnalytics()
   const [pathname, setPathname] = useState(() => initialPath ?? (typeof window === 'undefined' ? '/' : window.location.pathname))
   const route = resolveRoute(pathname)
+  const growthPage = GROWTH_PAGES[route.key]
 
   const navigate = useCallback((href: string) => {
     const url = new URL(href, window.location.origin)
@@ -1969,5 +2279,6 @@ export default function App({ initialPath }: { initialPath?: string }) {
   if (route.key === 'services') return <ServicesPage />
   if (route.key === 'contact') return <ContactPage />
   if (route.key === 'privacy') return <PrivacyPage />
-  return <><Header/><main><Hero/><ProcessSection/><ServicesSection/><ProjectsSection onOpenCase={openCase}/><ContactSection dark/></main><Footer/></>
+  if (growthPage) return <GrowthPageView page={growthPage}/>
+  return <><Header/><main><Hero/><ProblemsSection/><ServicesSection/><ProjectsSection onOpenCase={openCase}/><DiagnosticSection/><ProcessSection/><WhyNovaLineSection/><FinalDiagnosticCta/></main><Footer/></>
 }

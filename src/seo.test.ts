@@ -3,10 +3,19 @@ import { getJsonLd, getSeoMetadata, renderSeoHead } from './seo'
 import { LEGACY_HASH_ROUTES, PUBLIC_ROUTES, SITE_ORIGIN } from './routes'
 
 describe('SEO estructural', () => {
-  it('define únicamente las nueve rutas públicas con barra final', () => {
+  it('define las dieciocho rutas públicas con barra final', () => {
     expect(PUBLIC_ROUTES.map((route) => route.path)).toEqual([
       '/',
       '/servicios/',
+      '/servicios/software-a-la-medida/',
+      '/servicios/desarrollo-crm/',
+      '/servicios/automatizacion-de-procesos/',
+      '/servicios/desarrollo-web/',
+      '/servicios/seo-local/',
+      '/soluciones/reemplazar-excel/',
+      '/soluciones/digitalizar-pedidos/',
+      '/soluciones/automatizar-procesos/',
+      '/soluciones/mejorar-presencia-digital/',
       '/nosotros/',
       '/contacto/',
       '/privacidad/',
@@ -80,6 +89,15 @@ describe('SEO estructural', () => {
     const expectedImages = new Map([
       ['/', { path: '/assets/social/novaline-home-1200x630-v3.png', width: 1200, height: 630, type: 'image/png' }],
       ['/servicios/', { path: '/assets/social/novaline-servicios-1200x630-v2.png', width: 1200, height: 630, type: 'image/png' }],
+      ['/servicios/software-a-la-medida/', { path: '/assets/social/novaline-servicios-1200x630-v2.png', width: 1200, height: 630, type: 'image/png' }],
+      ['/servicios/desarrollo-crm/', { path: '/assets/crm-formula-animal/cover.png', width: 744, height: 378, type: 'image/png' }],
+      ['/servicios/automatizacion-de-procesos/', { path: '/assets/lia/cover.png', width: 744, height: 378, type: 'image/png' }],
+      ['/servicios/desarrollo-web/', { path: '/assets/native-haus/cover.png', width: 744, height: 378, type: 'image/png' }],
+      ['/servicios/seo-local/', { path: '/assets/social/novaline-servicios-1200x630-v2.png', width: 1200, height: 630, type: 'image/png' }],
+      ['/soluciones/reemplazar-excel/', { path: '/assets/crm-formula-animal/cover.png', width: 744, height: 378, type: 'image/png' }],
+      ['/soluciones/digitalizar-pedidos/', { path: '/assets/nexus-pos/cover.png', width: 744, height: 378, type: 'image/png' }],
+      ['/soluciones/automatizar-procesos/', { path: '/assets/lia/cover.png', width: 744, height: 378, type: 'image/png' }],
+      ['/soluciones/mejorar-presencia-digital/', { path: '/assets/social/novaline-home-1200x630-v3.png', width: 1200, height: 630, type: 'image/png' }],
       ['/nosotros/', { path: '/assets/social/novaline-equipo-1200x630.jpg', width: 1200, height: 630, type: 'image/jpeg' }],
       ['/proyectos/formula-animal/', { path: '/assets/crm-formula-animal/cover.png', width: 744, height: 378, type: 'image/png' }],
       ['/proyectos/native-haus/', { path: '/assets/native-haus/cover.png', width: 744, height: 378, type: 'image/png' }],

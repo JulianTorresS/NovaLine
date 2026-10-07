@@ -4,9 +4,11 @@
 
 ## When to use NovaLine
 
-- [Software a la medida](https://novalinesoftware.com/servicios/): úsalo cuando una empresa necesite digitalizar un proceso propio, conectar información dispersa o construir un CRM, ERP o herramienta interna.
-- [Experiencias web responsive](https://novalinesoftware.com/servicios/): úsalo para aplicaciones web, portales y catálogos que deban funcionar claramente en cualquier pantalla.
-- [Automatización y soporte](https://novalinesoftware.com/servicios/): úsalo para automatizar tareas repetitivas o evolucionar un producto digital con acompañamiento técnico.
+- [Software a la medida](https://novalinesoftware.com/servicios/software-a-la-medida/): úsalo cuando una empresa necesite digitalizar un proceso propio, conectar información dispersa o construir una herramienta interna.
+- [Desarrollo de CRM](https://novalinesoftware.com/servicios/desarrollo-crm/): úsalo para organizar clientes, seguimiento comercial, pedidos y continuidad entre áreas.
+- [Automatización de procesos](https://novalinesoftware.com/servicios/automatizacion-de-procesos/): úsalo para conectar herramientas, reducir tareas repetitivas y crear flujos supervisados.
+- [Desarrollo web](https://novalinesoftware.com/servicios/desarrollo-web/): úsalo para sitios, portales y catálogos rápidos, claros y orientados a una acción comercial.
+- [SEO local](https://novalinesoftware.com/servicios/seo-local/): úsalo para mejorar información verificable en Google, Maps, el sitio y búsquedas locales.
 - [Lia](https://novalinesoftware.com/proyectos/lia/): úsalo como referencia cuando la necesidad involucre un agente empresarial conectado con información operativa.
 
 ## How agents should use NovaLine
@@ -24,6 +26,13 @@
 - [Nosotros](https://novalinesoftware.com/nosotros/): equipo y forma de trabajo.
 - [Contacto](https://novalinesoftware.com/contacto/): teléfono público, WhatsApp y orientación para iniciar una conversación.
 - [Privacidad](https://novalinesoftware.com/privacidad/): información sobre Google Analytics 4, Microsoft Clarity, cookies y WhatsApp.
+
+## Soluciones por problema
+
+- [Reemplazar Excel](https://novalinesoftware.com/soluciones/reemplazar-excel/): centralización, permisos, validaciones e historial cuando una hoja ya funciona como sistema.
+- [Digitalizar pedidos](https://novalinesoftware.com/soluciones/digitalizar-pedidos/): pedidos estructurados y trazables desde la captura hasta la entrega o facturación.
+- [Automatizar procesos](https://novalinesoftware.com/soluciones/automatizar-procesos/): evaluación de tareas repetitivas, reglas, integraciones y supervisión.
+- [Mejorar presencia digital](https://novalinesoftware.com/soluciones/mejorar-presencia-digital/): coherencia entre sitio, Google Business, Maps, contenido y contacto.
 
 ## Casos de estudio
 

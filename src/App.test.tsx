@@ -50,21 +50,21 @@ describe('NovaLine landing', () => {
     expect(homeLinks.slice(-2).map((link) => link.textContent)).toEqual(['Servicios', 'Nosotros'])
   })
 
-  it('presenta un hero único y conserva el bloque compacto de tres servicios', () => {
+  it('presenta un hero único y las tres categorías de solución', () => {
     window.history.replaceState({}, '', '/')
     const { container } = render(<App />)
     expect(container.querySelectorAll('#inicio h1')).toHaveLength(1)
-    expect(screen.getByRole('heading', { level: 1, name: /Software a la medida que entiende cómo funciona tu empresa/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: /Software y tecnología para hacer crecer tu empresa/i })).toBeInTheDocument()
     expect(container.querySelector('#inicio [role="tab"]')).not.toBeInTheDocument()
     expect(container.querySelector('.hero__count')).not.toBeInTheDocument()
 
     const services = screen.getByRole('region', { name: 'Servicios de desarrollo de NovaLine' })
-    expect(services.querySelectorAll('.service-card')).toHaveLength(3)
-    expect(services).toHaveTextContent('Software a la medida')
-    expect(services).toHaveTextContent('Experiencias web responsive')
-    expect(services).toHaveTextContent('Automatización y soporte')
+    expect(services.querySelectorAll('.solution-group')).toHaveLength(3)
+    expect(services).toHaveTextContent('Presencia digital')
+    expect(services).toHaveTextContent('Digitalización de procesos')
+    expect(services).toHaveTextContent('Automatización')
     expect(screen.queryByRole('button', { name: 'Ver servicio siguiente' })).not.toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Conocer nuestros servicios de desarrollo/i })).toHaveAttribute('href', '/servicios/')
+    expect(screen.getByRole('link', { name: /Ver todos los servicios y nuestra forma de trabajo/i })).toHaveAttribute('href', '/servicios/')
   })
 
   it('integra el video, el símbolo original, el control de pausa y los ocho servicios', () => {
@@ -319,7 +319,7 @@ describe('NovaLine landing', () => {
     window.history.replaceState({}, '', '/')
     render(<App />)
 
-    fireEvent.click(screen.getByRole('link', { name: /Conocer nuestros servicios de desarrollo/i }))
+    fireEvent.click(screen.getByRole('link', { name: /Ver todos los servicios y nuestra forma de trabajo/i }))
 
     expect(window.location.pathname).toBe('/servicios/')
     expect(window.location.hash).toBe('')

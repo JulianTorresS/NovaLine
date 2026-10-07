@@ -1,4 +1,5 @@
 import { SERVICES, SITE, TEAM_MEMBERS } from './config'
+import { GROWTH_PAGES, SERVICE_ROUTE_KEYS, SOLUTION_ROUTE_KEYS } from './growth-content'
 import { absoluteUrl, resolveRoute, ROUTES, SITE_ORIGIN, type RouteDefinition } from './routes'
 
 type JsonLd = Record<string, unknown>
@@ -73,6 +74,7 @@ function webpageSchema(route: RouteDefinition): JsonLd {
   if (route.key === 'services') {
     page.mainEntity = SERVICES.map((_, index) => ({ '@id': `${canonical}#service-${index + 1}` }))
   }
+  if (SERVICE_ROUTE_KEYS.has(route.key)) page.mainEntity = { '@id': `${canonical}#service` }
   if (route.key === 'about') {
     page.mainEntity = { '@id': organizationId }
     page.mentions = TEAM_MEMBERS.map((_, index) => ({ '@id': `${canonical}#person-${index + 1}` }))
@@ -85,23 +87,35 @@ function webpageSchema(route: RouteDefinition): JsonLd {
 function breadcrumbSchema(route: RouteDefinition): JsonLd | undefined {
   if (route.key === 'home') return undefined
   const canonical = absoluteUrl(route.path)
+  const isService = SERVICE_ROUTE_KEYS.has(route.key)
+  const isSolution = SOLUTION_ROUTE_KEYS.has(route.key)
+  const isCase = caseRouteKeys.has(route.key)
+  const parent = isService
+    ? { name: 'Servicios', item: absoluteUrl(ROUTES.services.path) }
+    : isSolution
+      ? { name: 'Soluciones', item: `${SITE_ORIGIN}/#servicios` }
+      : isCase
+        ? { name: 'Proyectos', item: `${SITE_ORIGIN}/#proyectos` }
+        : undefined
+  const itemListElement: JsonLd[] = [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Inicio',
+      item: `${SITE_ORIGIN}/`,
+    },
+  ]
+  if (parent) itemListElement.push({ '@type': 'ListItem', position: 2, ...parent })
+  itemListElement.push({
+    '@type': 'ListItem',
+    position: parent ? 3 : 2,
+    name: route.title.replace(/ \| (Caso )?NovaLine$/, ''),
+    item: canonical,
+  })
   return {
     '@type': 'BreadcrumbList',
     '@id': `${canonical}#breadcrumb`,
-    itemListElement: [
-      {
-        '@type': 'ListItem',
-        position: 1,
-        name: 'Inicio',
-        item: `${SITE_ORIGIN}/`,
-      },
-      {
-        '@type': 'ListItem',
-        position: 2,
-        name: route.title.replace(/ \| (Caso )?NovaLine$/, ''),
-        item: canonical,
-      },
-    ],
+    itemListElement,
   }
 }
 
@@ -118,6 +132,24 @@ function serviceSchemas(): JsonLd[] {
     },
     url: absoluteUrl(ROUTES.services.path),
   }))
+}
+
+function detailServiceSchema(route: RouteDefinition): JsonLd | undefined {
+  const page = GROWTH_PAGES[route.key]
+  if (!page || page.kind !== 'service') return undefined
+  const canonical = absoluteUrl(route.path)
+  return {
+    '@type': 'Service',
+    '@id': `${canonical}#service`,
+    name: page.h1,
+    description: page.lead,
+    serviceType: page.kicker,
+    provider: { '@id': organizationId },
+    areaServed: { '@type': 'Country', name: 'Colombia' },
+    audience: { '@type': 'BusinessAudience', audienceType: 'Pequeñas y medianas empresas' },
+    url: canonical,
+    mainEntityOfPage: { '@id': `${canonical}#webpage` },
+  }
 }
 
 function personSchemas(): JsonLd[] {
@@ -154,6 +186,8 @@ export function getJsonLd(pathname: string): JsonLd {
   const breadcrumb = breadcrumbSchema(route)
   if (breadcrumb) graph.push(breadcrumb)
   if (route.key === 'services') graph.push(...serviceSchemas())
+  const detailService = detailServiceSchema(route)
+  if (detailService) graph.push(detailService)
   if (route.key === 'about') graph.push(...personSchemas())
   if (caseRouteKeys.has(route.key)) graph.push(caseStudySchema(route))
   return {

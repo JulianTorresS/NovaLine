@@ -1,6 +1,24 @@
 export const SITE_ORIGIN = 'https://novalinesoftware.com'
 
-export type RouteKey = 'home' | 'services' | 'about' | 'contact' | 'privacy' | 'formula-animal' | 'native-haus' | 'nexus-pos' | 'lia'
+export type RouteKey =
+  | 'home'
+  | 'services'
+  | 'software-a-la-medida'
+  | 'desarrollo-crm'
+  | 'automatizacion-de-procesos'
+  | 'desarrollo-web'
+  | 'seo-local'
+  | 'reemplazar-excel'
+  | 'digitalizar-pedidos'
+  | 'automatizar-procesos'
+  | 'mejorar-presencia-digital'
+  | 'about'
+  | 'contact'
+  | 'privacy'
+  | 'formula-animal'
+  | 'native-haus'
+  | 'nexus-pos'
+  | 'lia'
 
 export type RouteDefinition = {
   key: RouteKey
@@ -16,8 +34,8 @@ export const ROUTES: Record<RouteKey, RouteDefinition> = {
   home: {
     key: 'home',
     path: '/',
-    title: 'Desarrollo de software a la medida en Colombia | NovaLine',
-    description: 'Desarrollamos software a la medida, aplicaciones web y sistemas empresariales que automatizan procesos para empresas en Colombia.',
+    title: 'Software para hacer crecer tu empresa | NovaLine',
+    description: 'Creamos software, CRM, automatizaciones y soluciones web para reducir tareas manuales, ordenar procesos y ayudar a tu empresa a crecer.',
     ogImage: '/assets/social/novaline-home-1200x630-v3.png',
     ogImageWidth: 1200,
     ogImageHeight: 630,
@@ -28,6 +46,87 @@ export const ROUTES: Record<RouteKey, RouteDefinition> = {
     title: 'Servicios de software a medida y automatización | NovaLine',
     description: 'Creamos software empresarial, aplicaciones web y automatizaciones adaptadas a cada operación, con mantenimiento y soporte cercano en Colombia.',
     ogImage: '/assets/social/novaline-servicios-1200x630-v2.png',
+    ogImageWidth: 1200,
+    ogImageHeight: 630,
+  },
+  'software-a-la-medida': {
+    key: 'software-a-la-medida',
+    path: '/servicios/software-a-la-medida/',
+    title: 'Software a la medida para empresas en Colombia | NovaLine',
+    description: 'Desarrollamos software a la medida para reemplazar Excel, centralizar información y digitalizar procesos propios. Solicita un diagnóstico.',
+    ogImage: '/assets/social/novaline-servicios-1200x630-v2.png',
+    ogImageWidth: 1200,
+    ogImageHeight: 630,
+  },
+  'desarrollo-crm': {
+    key: 'desarrollo-crm',
+    path: '/servicios/desarrollo-crm/',
+    title: 'Desarrollo de CRM personalizado en Colombia | NovaLine',
+    description: 'Creamos CRM personalizados para organizar clientes, pedidos, seguimiento comercial y operación. Analicemos el proceso de tu empresa.',
+    ogImage: '/assets/crm-formula-animal/cover.png',
+    ogImageWidth: 744,
+    ogImageHeight: 378,
+  },
+  'automatizacion-de-procesos': {
+    key: 'automatizacion-de-procesos',
+    path: '/servicios/automatizacion-de-procesos/',
+    title: 'Automatización de procesos empresariales | NovaLine',
+    description: 'Conectamos herramientas y automatizamos tareas repetitivas para ahorrar tiempo, reducir errores y dar continuidad a la operación.',
+    ogImage: '/assets/lia/cover.png',
+    ogImageWidth: 744,
+    ogImageHeight: 378,
+  },
+  'desarrollo-web': {
+    key: 'desarrollo-web',
+    path: '/servicios/desarrollo-web/',
+    title: 'Desarrollo web para empresas en Colombia | NovaLine',
+    description: 'Diseñamos sitios y aplicaciones web rápidos, claros y orientados a generar oportunidades comerciales. Solicita un diagnóstico inicial.',
+    ogImage: '/assets/native-haus/cover.png',
+    ogImageWidth: 744,
+    ogImageHeight: 378,
+  },
+  'seo-local': {
+    key: 'seo-local',
+    path: '/servicios/seo-local/',
+    title: 'SEO local para empresas en Colombia | NovaLine',
+    description: 'Mejoramos la presencia de tu negocio en Google, Maps y búsquedas locales con una base técnica y contenidos útiles. Revisa tu visibilidad.',
+    ogImage: '/assets/social/novaline-servicios-1200x630-v2.png',
+    ogImageWidth: 1200,
+    ogImageHeight: 630,
+  },
+  'reemplazar-excel': {
+    key: 'reemplazar-excel',
+    path: '/soluciones/reemplazar-excel/',
+    title: 'Reemplazar Excel con software empresarial | NovaLine',
+    description: 'Centraliza datos, permisos y trazabilidad cuando Excel ya no alcanza para operar. Analizamos si tu proceso necesita un sistema propio.',
+    ogImage: '/assets/crm-formula-animal/cover.png',
+    ogImageWidth: 744,
+    ogImageHeight: 378,
+  },
+  'digitalizar-pedidos': {
+    key: 'digitalizar-pedidos',
+    path: '/soluciones/digitalizar-pedidos/',
+    title: 'Digitalizar pedidos y centralizar su gestión | NovaLine',
+    description: 'Organiza pedidos que hoy llegan por WhatsApp, llamadas o archivos dispersos. Diseñamos un flujo digital conectado con tu operación.',
+    ogImage: '/assets/nexus-pos/cover.png',
+    ogImageWidth: 744,
+    ogImageHeight: 378,
+  },
+  'automatizar-procesos': {
+    key: 'automatizar-procesos',
+    path: '/soluciones/automatizar-procesos/',
+    title: 'Automatizar procesos manuales en tu empresa | NovaLine',
+    description: 'Detecta tareas repetitivas, traspasos y alertas que pueden automatizarse sin perder control. Solicita un diagnóstico de tu proceso.',
+    ogImage: '/assets/lia/cover.png',
+    ogImageWidth: 744,
+    ogImageHeight: 378,
+  },
+  'mejorar-presencia-digital': {
+    key: 'mejorar-presencia-digital',
+    path: '/soluciones/mejorar-presencia-digital/',
+    title: 'Mejorar la presencia digital de tu empresa | NovaLine',
+    description: 'Alinea tu sitio web, Google Business y SEO local para que más clientes encuentren y entiendan tu negocio. Revisa tu presencia digital.',
+    ogImage: '/assets/social/novaline-home-1200x630-v3.png',
     ogImageWidth: 1200,
     ogImageHeight: 630,
   },

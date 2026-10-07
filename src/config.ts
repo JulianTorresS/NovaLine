@@ -24,10 +24,12 @@ export const PHONE_DEMOS = [
 ]
 
 export const PROCESS = [
-  { number: '01', title: 'Entendemos el negocio', text: 'Mapeamos tus procesos, el problema real y el resultado que necesitas antes de hablar de tecnología.' },
-  { number: '02', title: 'Diseñamos la solución', text: 'Convertimos los hallazgos en flujos y un prototipo navegable que puedes validar desde el inicio.' },
-  { number: '03', title: 'Construimos por etapas', text: 'Desarrollamos entregas funcionales, medibles y listas para probar con tu equipo.' },
-  { number: '04', title: 'Seguimos a tu lado', text: 'Acompañamos la adopción, medimos el uso y evolucionamos el producto cuando el negocio lo pide.' },
+  { number: '01', title: 'Analizamos tu negocio', text: 'Entendemos el proceso actual, las personas involucradas y el resultado que necesitas mejorar.' },
+  { number: '02', title: 'Detectamos oportunidades', text: 'Identificamos tareas manuales, información dispersa y puntos donde la tecnología puede aportar valor.' },
+  { number: '03', title: 'Diseñamos la solución', text: 'Convertimos los hallazgos en flujos y un prototipo navegable que puedes validar desde el inicio.' },
+  { number: '04', title: 'Desarrollamos', text: 'Construimos por etapas funcionales para revisar avances con tu equipo y reducir incertidumbre.' },
+  { number: '05', title: 'Implementamos', text: 'Preparamos datos, accesos y acompañamiento para integrar la solución a la operación real.' },
+  { number: '06', title: 'Acompañamos', text: 'Atendemos ajustes y evolucionamos el producto cuando cambian las prioridades del negocio.' },
 ]
 
 export const SERVICES = [
@@ -80,10 +82,10 @@ export const TEAM_MEMBERS = [
 ]
 
 export const PROJECTS = [
-  { name: 'Lia', category: 'Agente inteligente', title: 'Un asistente empresarial que consulta, analiza y automatiza procesos.', metric: '4', metricLabel: 'capacidades conectadas', tags: ['IA', 'Automatización', 'Analítica'], theme: 'lia', featured: true, caseStudy: 'lia' },
-  { name: 'NexusPOS', category: 'ERP comercial', title: 'Ventas, inventario, clientes y caja conectados en una sola operación.', metric: '10', metricLabel: 'módulos de negocio', tags: ['ERP', 'Punto de venta', 'Inventario'], theme: 'pos', featured: true, caseStudy: 'nexus-pos' },
-  { name: 'Fórmula Animal', category: 'CRM veterinario', title: 'Una operación completa, del pedido a la liquidación.', metric: '15', metricLabel: 'módulos conectados', tags: ['CRM', 'Logística', 'Calidad'], theme: 'blue', featured: true, caseStudy: 'formula-animal' },
-  { name: 'Nativhaus', category: 'Landing e-commerce', title: 'Madera, catálogo y asesoría reunidos en una experiencia que convierte.', metric: '24', metricLabel: 'productos conectados', tags: ['Landing', 'Catálogo', 'WhatsApp'], theme: 'wood', featured: true, caseStudy: 'native-haus' },
+  { name: 'Lia', category: 'Agente inteligente', title: 'Un asistente empresarial que consulta, analiza y automatiza procesos.', problem: 'Consultar información y ejecutar tareas exigía cambiar entre documentos y herramientas.', solution: 'Diseñamos un agente empresarial que reúne consulta, análisis y acciones asistidas.', result: 'Cuatro capacidades conectadas en una misma experiencia de trabajo.', metric: '4', metricLabel: 'capacidades conectadas', tags: ['IA', 'Automatización', 'Analítica'], theme: 'lia', featured: true, caseStudy: 'lia' },
+  { name: 'NexusPOS', category: 'ERP comercial', title: 'Ventas, inventario, clientes y caja conectados en una sola operación.', problem: 'La operación comercial necesitaba relacionar cada venta con inventario, clientes y caja.', solution: 'Construimos un sistema POS con módulos para venta, domicilios, inventario y reportes.', result: 'Diez módulos de negocio trabajan sobre una operación comercial conectada.', metric: '10', metricLabel: 'módulos de negocio', tags: ['ERP', 'Punto de venta', 'Inventario'], theme: 'pos', featured: true, caseStudy: 'nexus-pos' },
+  { name: 'Fórmula Animal', category: 'CRM veterinario', title: 'Una operación completa, del pedido a la liquidación.', problem: 'La operación estaba distribuida entre diferentes procesos y herramientas.', solution: 'Desarrollamos un CRM personalizado para pedidos, logística, calidad, clientes y facturación.', result: 'Más de 15 módulos conectados centralizan el recorrido de cada pedido.', metric: '15+', metricLabel: 'módulos conectados', tags: ['CRM', 'Logística', 'Calidad'], theme: 'blue', featured: true, caseStudy: 'formula-animal' },
+  { name: 'Nativhaus', category: 'Landing e-commerce', title: 'Madera, catálogo y asesoría reunidos en una experiencia que convierte.', problem: 'El portafolio necesitaba una presentación digital clara que facilitara explorar y cotizar.', solution: 'Creamos una experiencia web con catálogo, universos de producto y contacto contextual.', result: 'Veinticuatro productos conectados con rutas de cotización por WhatsApp.', metric: '24', metricLabel: 'productos conectados', tags: ['Landing', 'Catálogo', 'WhatsApp'], theme: 'wood', featured: true, caseStudy: 'native-haus' },
 ]
 
 export function whatsappUrl(message = SITE.whatsappMessage) {

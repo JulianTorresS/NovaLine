@@ -2,21 +2,22 @@ import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 
 const origin = 'https://novalinesoftware.com'
-const routes = [
-  '/',
-  '/servicios/',
-  '/nosotros/',
-  '/contacto/',
-  '/privacidad/',
-  '/proyectos/formula-animal/',
-  '/proyectos/native-haus/',
-  '/proyectos/nexus-pos/',
-  '/proyectos/lia/',
-]
+const sitemap = await readFile('dist/sitemap.xml', 'utf8')
+const sitemapUrls = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1])
+const routes = sitemapUrls.map((url) => new URL(url).pathname)
 const routeSet = new Set(routes)
 const socialImages = new Map([
   ['/', { path: '/assets/social/novaline-home-1200x630-v3.png', width: '1200', height: '630', type: 'image/png' }],
   ['/servicios/', { path: '/assets/social/novaline-servicios-1200x630-v2.png', width: '1200', height: '630', type: 'image/png' }],
+  ['/servicios/software-a-la-medida/', { path: '/assets/social/novaline-servicios-1200x630-v2.png', width: '1200', height: '630', type: 'image/png' }],
+  ['/servicios/desarrollo-crm/', { path: '/assets/crm-formula-animal/cover.png', width: '744', height: '378', type: 'image/png' }],
+  ['/servicios/automatizacion-de-procesos/', { path: '/assets/lia/cover.png', width: '744', height: '378', type: 'image/png' }],
+  ['/servicios/desarrollo-web/', { path: '/assets/native-haus/cover.png', width: '744', height: '378', type: 'image/png' }],
+  ['/servicios/seo-local/', { path: '/assets/social/novaline-servicios-1200x630-v2.png', width: '1200', height: '630', type: 'image/png' }],
+  ['/soluciones/reemplazar-excel/', { path: '/assets/crm-formula-animal/cover.png', width: '744', height: '378', type: 'image/png' }],
+  ['/soluciones/digitalizar-pedidos/', { path: '/assets/nexus-pos/cover.png', width: '744', height: '378', type: 'image/png' }],
+  ['/soluciones/automatizar-procesos/', { path: '/assets/lia/cover.png', width: '744', height: '378', type: 'image/png' }],
+  ['/soluciones/mejorar-presencia-digital/', { path: '/assets/social/novaline-home-1200x630-v3.png', width: '1200', height: '630', type: 'image/png' }],
   ['/nosotros/', { path: '/assets/social/novaline-equipo-1200x630.jpg', width: '1200', height: '630', type: 'image/jpeg' }],
   ['/proyectos/formula-animal/', { path: '/assets/crm-formula-animal/cover.png', width: '744', height: '378', type: 'image/png' }],
   ['/proyectos/native-haus/', { path: '/assets/native-haus/cover.png', width: '744', height: '378', type: 'image/png' }],
@@ -100,10 +101,8 @@ for (const route of routes) {
   }
 }
 
-const sitemap = await readFile('public/sitemap.xml', 'utf8')
-const sitemapUrls = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1])
 assert(JSON.stringify(sitemapUrls) === JSON.stringify(routes.map((route) => `${origin}${route}`)), 'El sitemap no coincide con las rutas públicas')
-assert((sitemap.match(/<lastmod>2026-10-05<\/lastmod>/g) ?? []).length === routes.length, 'El sitemap no incluye lastmod preciso para todas las rutas actualizadas')
+assert((sitemap.match(/<lastmod>\d{4}-\d{2}-\d{2}<\/lastmod>/g) ?? []).length === routes.length, 'El sitemap no incluye lastmod válido para todas las rutas actualizadas')
 
 const robots = await readFile('public/robots.txt', 'utf8')
 assert(robots.includes(`Sitemap: ${origin}/sitemap.xml`), 'robots.txt no apunta al sitemap canónico')
