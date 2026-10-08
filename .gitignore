@@ -11,3 +11,4 @@ vite.config.d.ts
 .seo-cache/
 .DS_Store
 Thumbs.db
+.vercel/

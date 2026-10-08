@@ -1,4 +1,7 @@
-import { GROWTH_PAGES } from '../src/growth-content'
+// Vercel executes the compiled middleware as native Node.js ESM, which requires
+// explicit file extensions for relative imports. TypeScript resolves this .js
+// specifier back to growth-content.ts during development and compilation.
+import { GROWTH_PAGES } from '../src/growth-content.js'
 
 const SITE_ORIGIN = 'https://novalinesoftware.com'
 
